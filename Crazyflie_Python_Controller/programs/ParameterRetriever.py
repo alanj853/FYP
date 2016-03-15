@@ -39,31 +39,38 @@ class ParameterRetriever:
         #print "[%d][%s]: %s" % (timestamp, logconf.name, data)
         self._analyse_data(data)
         
-    def _convert_data_to_number(self, data):
-        new_data = ""
-        old_data = str(data)
-        for t in old_data.split():
-            if t.endswith('}'):
-                new_data= t.replace("}", "") # get rid of last bracket
-        for f in old_data.split():
-            if f.isspace():
-                new_data= t.replace(" ", "") # get rid of white space
-        new_data = float(new_data)
-        return new_data
+    def _convert_data_to_number(self, data , varName):
+        # new_data = ""
+        # old_data = str(data)
+        # for t in old_data.split():
+        #     if t.endswith('}'):
+        #         new_data= t.replace("}", "") # get rid of last bracket
+        # for f in old_data.split():
+        #     if f.isspace():
+        #         new_data= t.replace(" ", "") # get rid of white space
+        # new_data = float(new_data)
+        # return new_data
 
         oldData = str(data)
         if varName in oldData == False:
-            return "Cannot find '", varName, "' in log data"
+            return "ERROR: Cannot find '", varName, "' in log data"
         
-        oldData = oldData.split(varName)
+        oldData = oldData.split(varName + "': ")
         myData = ""
-        for letter in oldData:
-            if letter.contains(varName):
+        rhsData = oldData[1]
+        for letter in rhsData.split():
+            if letter == "}":
+                break;
+            else:
+                myData = myData + letter
+
+        return myData
 
 
 
 
     def _analyse_data(self, string_data):
         #self.curr_alt = self._convert_data_to_number(string_data)
-        ans = self._convert_data_to_number(string_data)
+        ans = self._convert_data_to_number(string_data, varName)
         self.curr_alt = ans
+        print "varName = ", ans
