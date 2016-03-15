@@ -28,9 +28,6 @@ from cflib.crazyflie.log import LogConfig
 
 from PIDController import PIDController
 import logging
-#from Tkinter import *
-#import tkMessageBox
-#import Tkinter
 
 
 
@@ -50,7 +47,6 @@ class FlightController:
     current_thrust = 0
     pidctrl = PIDController()
     altHold = False
-    plotterInUse = False
     thrustArray = [0]
     calculate = True
 
@@ -126,62 +122,6 @@ class FlightController:
         sock.close()
         print "Client Closed"
 
-
-    def _begin_logging(self):
-        # The definition of the logconfig can be made before connecting
-        self._lg_alt = LogConfig(name="Altitude", period_in_ms=10)
-        self._lg_alt.add_variable('baro.asl', "float")
-
-        # Adding the configuration cannot be done until a Crazyflie is
-        # connected, since we need to check that the variables we
-        # would like to log are in the TOC.
-        self._cf.log.add_config(self._lg_alt)
-        if self._lg_alt.valid:
-            # This callback will receive the data
-            self._lg_alt.data_received_cb.add_callback(self._alt_log_data)
-            # This callback will be called on errors
-            self._lg_alt.error_cb.add_callback(self._alt_log_error)
-            self._lg_alt.start()
-        else:
-            print("Could not add logconfig since some variables are not in TOC")
-
-    #curr_alt = 0
-    cf_occupied = False
-
-    def _alt_log_error(self, logconf, msg):
-        """Callback from the log API when an error occurs"""
-        print "Error when logging %s: %s" % (logconf.name, msg)
-
-    def _alt_log_data(self, timestamp, data, logconf):
-        """Callback froma the log API when data arrives"""
-        #print "[%d][%s]: %s" % (timestamp, logconf.name, data)
-        self._analyse_data(data)
-        
-    def _convert_data_to_number(self, data):
-        new_data = ""
-        old_data = str(data)
-        for t in old_data.split():
-            if t.endswith('}'):
-                new_data= t.replace("}", "") # get rid of last bracket
-        for f in old_data.split():
-            if f.isspace():
-                new_data= t.replace(" ", "") # get rid of white space
-        new_data = float(new_data)
-        return new_data
-
-    def _analyse_data(self, string_data):
-        #self.curr_alt = self._convert_data_to_number(string_data)
-        ans = self._convert_data_to_number(string_data)
-        #print "1st ans = ", ans
-        ans = ans*1000;
-        #print "2nd ans = ", ans
-        ans = int(ans)
-        #print "3rd ans = ", ans
-        ans = float(ans)
-        ans = ans/1000
-        #print "4th ans = ", ans
-        self.curr_alt = ans
-
     def getAlt(self):
         thrustCompensation = .04
         alLtist = []
@@ -199,30 +139,6 @@ class FlightController:
         print "Return alt = ", averageAlt
         return averageAlt
 
-
-    #  GUI To Diplay Battery info
-    def _start_gui(self):
-        # root = Tk()
-        # root.geometry('400x100+20+20')
-         
-        # mainframe = Frame(root)
-        # mainframe.grid(column=1000, row=1000, sticky=(N, W, E, S))
-        # mainframe.columnconfigure(0, weight=1)
-        # mainframe.rowconfigure(0, weight=1)
-         
-        # best = StringVar()
-        # best.set('start')
-        # x1 = 12
-        # Label(mainframe,textvariable=best,bg='#321000',fg='#000fff000',font=("Helvetica",x1)).grid(column=1,row=1)
-         
-        # while self.log_battery == True:
-        #     time.sleep(1.0)
-        #     ans = 100*self.curr_alt/4
-        #     battery_info = "Battery Voltage = ", self.curr_alt, "\n", "Percentage = ", ans, "%"
-        #     best.set(battery_info)
-        #     mainframe.update()
-        # root.mainloop() 
-        x = 5
 
     def calNewThrust(self, targetAlt):
         currAlt = self.getAlt()
@@ -410,10 +326,6 @@ class FlightController:
 
             if altHold == True:
                 self.current_thrust = self.calNewThrust(targetAlt)
-                self.calculate = False
-                self.thrustArray.append(self.current_thrust)
-                print "Thrust = ", len(self.thrustArray), " PID = ", len(self.pidctrl.getErrorAccum()), " x = ", len(self.pidctrl.getxAxis())
-                self.calculate = True
 
 
 
