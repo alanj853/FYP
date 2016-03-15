@@ -27,7 +27,7 @@ class ParameterRetriever:
             print("Could not add logconfig since some variables are not in TOC")
 
     def retrieveVar(self, varName):
-        
+
 
 
     def _alt_log_error(self, logconf, msg):
@@ -50,6 +50,18 @@ class ParameterRetriever:
                 new_data= t.replace(" ", "") # get rid of white space
         new_data = float(new_data)
         return new_data
+
+        oldData = str(data)
+        if varName in oldData == False:
+            return "Cannot find '", varName, "' in log data"
+        
+        oldData = oldData.split(varName)
+        myData = ""
+        for letter in oldData:
+            if letter.contains(varName):
+
+
+
 
     def _analyse_data(self, string_data):
         #self.curr_alt = self._convert_data_to_number(string_data)
