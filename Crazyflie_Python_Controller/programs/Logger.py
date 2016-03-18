@@ -1,17 +1,18 @@
 import logging
 from cflib.crazyflie.log import LogConfig
 
-class ParameterRetriever:
+class Logger:
 
     logger = 0;
+    _cf = ""
 
     def __init__(self, crazyflie):
-        print "ParameterRetriever created"
+        print "Logger created"
         self._logger = LogConfig(name="MyLogConfig", period_in_ms=10)
+        self._cf = crazyflie
 
-    def _begin_logging(self):
-        # The definition of the logconfig can be made before connecting
-        self._logger.add_variable('baro.asl', "float")
+    def begin_logging(self):
+        print "Starting logger..."
 
         # Adding the configuration cannot be done until a Crazyflie is
         # connected, since we need to check that the variables we
@@ -22,12 +23,20 @@ class ParameterRetriever:
             self._logger.data_received_cb.add_callback(self._alt_log_data)
             # This callback will be called on errors
             self._logger.error_cb.add_callback(self._alt_log_error)
+            print "Logger Started"
             self._logger.start()
         else:
-            print("Could not add logconfig since some variables are not in TOC")
+            print "Could not add logconfig since some variables are not in TOC"
+            print "Log not started"
 
-    def retrieveVar(self, varName):
+    def retrieveVar(self, data):
+        print data
 
+
+    def logNewVar(self, varName, numberType):
+        self._logger.add_variable(varName, numberType) ## add a logable  parameter to logConfig object. Number type is usually "float". example: self._logger.add_variable('baro.asl', "float")
+        
+        print "Var '", varName, "' of type '", numberType, "' added to Logger"
 
 
     def _alt_log_error(self, logconf, msg):
@@ -37,7 +46,9 @@ class ParameterRetriever:
     def _alt_log_data(self, timestamp, data, logconf):
         """Callback froma the log API when data arrives"""
         #print "[%d][%s]: %s" % (timestamp, logconf.name, data)
-        self._analyse_data(data)
+        self._analyse_data(data, "baro.asl")
+        self._analyse_data(data, "gyro.x")
+        #self.retrieveVar(data)
         
     def _convert_data_to_number(self, data , varName):
         # new_data = ""
@@ -57,9 +68,9 @@ class ParameterRetriever:
         
         oldData = oldData.split(varName + "': ")
         myData = ""
-        rhsData = oldData[1]
-        for letter in rhsData.split():
-            if letter == "}":
+        rhsData = list(oldData[1])
+        for letter in rhsData:
+            if letter == '}' or letter == ',':
                 break;
             else:
                 myData = myData + letter
@@ -69,8 +80,8 @@ class ParameterRetriever:
 
 
 
-    def _analyse_data(self, string_data):
+    def _analyse_data(self, string_data, varName):
         #self.curr_alt = self._convert_data_to_number(string_data)
         ans = self._convert_data_to_number(string_data, varName)
         self.curr_alt = ans
-        print "varName = ", ans
+        print varName ," = ", ans

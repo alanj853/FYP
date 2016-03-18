@@ -124,7 +124,7 @@ class FlightController:
 
     def getAlt(self):
         thrustCompensation = .04
-        alLtist = []
+        altList = []
         s_time = time.time()
         f_time = s_time + .1
         curr_time = time.time()
