@@ -1,17 +1,26 @@
 import logging
 from cflib.crazyflie.log import LogConfig
+from threading import Thread
 
 class Logger:
 
     logger = 0;
     _cf = ""
+    cfData = "not used"
+    loggingStarted = False
 
     def __init__(self, crazyflie):
         print "Logger created"
         self._logger = LogConfig(name="MyLogConfig", period_in_ms=10)
         self._cf = crazyflie
+        
+    def startLogger(self):
+        print "starting new thread..."
+        #Thread(target=self._begin_logging).start()
+        print "new thread started"
+        self._begin_logging()
 
-    def begin_logging(self):
+    def _begin_logging(self):
         print "Starting logger..."
 
         # Adding the configuration cannot be done until a Crazyflie is
@@ -23,15 +32,13 @@ class Logger:
             self._logger.data_received_cb.add_callback(self._alt_log_data)
             # This callback will be called on errors
             self._logger.error_cb.add_callback(self._alt_log_error)
-            print "Logger Started"
+            
             self._logger.start()
+            print "Logger Started"
+            
         else:
             print "Could not add logconfig since some variables are not in TOC"
             print "Log not started"
-
-    def retrieveVar(self, data):
-        print data
-
 
     def logNewVar(self, varName, numberType):
         self._logger.add_variable(varName, numberType) ## add a logable  parameter to logConfig object. Number type is usually "float". example: self._logger.add_variable('baro.asl', "float")
@@ -46,29 +53,25 @@ class Logger:
     def _alt_log_data(self, timestamp, data, logconf):
         """Callback froma the log API when data arrives"""
         #print "[%d][%s]: %s" % (timestamp, logconf.name, data)
-        self._analyse_data(data, "baro.asl")
-        self._analyse_data(data, "gyro.x")
-        #self.retrieveVar(data)
+        self.loggingStarted = True
+        self.cfData = data
+        
         
     def _convert_data_to_number(self, data , varName):
-        # new_data = ""
-        # old_data = str(data)
-        # for t in old_data.split():
-        #     if t.endswith('}'):
-        #         new_data= t.replace("}", "") # get rid of last bracket
-        # for f in old_data.split():
-        #     if f.isspace():
-        #         new_data= t.replace(" ", "") # get rid of white space
-        # new_data = float(new_data)
-        # return new_data
-
+        print " in _convert_data_to_number"
         oldData = str(data)
+        if oldData == "":
+            return "ERROR: no data"
+
         if varName in oldData == False:
             return "ERROR: Cannot find '", varName, "' in log data"
         
         oldData = oldData.split(varName + "': ")
+        print oldData
         myData = ""
+
         rhsData = list(oldData[1])
+        print "dfsdf"
         for letter in rhsData:
             if letter == '}' or letter == ',':
                 break;
@@ -80,8 +83,9 @@ class Logger:
 
 
 
-    def _analyse_data(self, string_data, varName):
-        #self.curr_alt = self._convert_data_to_number(string_data)
-        ans = self._convert_data_to_number(string_data, varName)
-        self.curr_alt = ans
+    def retrieveVar(self, varName):
+        print " in retrieveVar"
+        #ans = self._convert_data_to_number(self.cfData, varName)
+        ans = self.loggingStarted
         print varName ," = ", ans
+        return ans

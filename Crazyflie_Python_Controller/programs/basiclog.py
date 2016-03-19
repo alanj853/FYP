@@ -39,8 +39,6 @@ import cflib.crtp
 import logging
 import time
 from threading import Timer
-from threading import Thread
-from UDP_Client import UDP_Client
 
 import cflib.crtp
 from cfclient.utils.logconfigreader import LogConfig
@@ -75,12 +73,95 @@ class LoggingExample:
         self.is_connected = True
 
     def _connected(self, link_uri):
-        udpClient = UDP_Client("127.0.0.1", 5000)
-        data = udpClient.requestData()
-        print "Data = ", data
-        self._cf.close_link()
-        	
+        """ This callback is called form the Crazyflie API when a Crazyflie
+        has been connected and the TOCs have been downloaded."""
+        print "Connected to %s" % link_uri
+
+        # The definition of the logconfig can be made before connecting
+        self._lg_stab = LogConfig(name="Stabilizer", period_in_ms=10)
+        #self._lg_stab.add_variable("stabilizer.roll", "float")
+        #self._lg_stab.add_variable("stabilizer.pitch", "float")
+        #self._lg_stab.add_variable("baro.asl", "float")
+        self._lg_stab.add_variable("gyro.x", "float")
+        #self._lg_stab.add_variable("gyro.y", "float")
+
+        # Adding the configuration cannot be done until a Crazyflie is
+        # connected, since we need to check that the variables we
+        # would like to log are in the TOC.
+        self._cf.log.add_config(self._lg_stab)
+        if self._lg_stab.valid:
+            # This callback will receive the data
+            self._lg_stab.data_received_cb.add_callback(self._stab_log_data)
+            # This callback will be called on errors
+            self._lg_stab.error_cb.add_callback(self._stab_log_error)
+            # Start the logging
+            self._lg_stab.start()
+        else:
+            print("Could not add logconfig since some variables are not in TOC")
+
+        # Start a timer to disconnect in 10s
+        t = Timer(10, self._cf.close_link)
+        t.start()
+
+    def _stab_log_error(self, logconf, msg):
+        """Callback from the log API when an error occurs"""
+        print "Error when logging %s: %s" % (logconf.name, msg)
+
+    # def _stab_log_data(self, timestamp, data, logconf):
+    #     """Callback froma the log API when data arrives"""
+    #     print "[%d][%s]: %s" % (timestamp, logconf.name, data)
+
+    def _stab_log_data(self, timestamp, data, logconf):
+        """Callback froma the log API when data arrives"""
+        print "[%d][%s]: %s" % (timestamp, logconf.name, data)
+        #self._analyse_data(data)
+
+    def waitForTime(self, waitTime):
+        currTime = time.time()
+        finishTime = currTime + waitTime
+        while(currTime < finishTime):
+            print "not done"
+            currTime = time.time()
+        print "done"
         
+    def _convert_data_to_number(self, data , varName):
+        # new_data = ""
+        # old_data = str(data)
+        # for t in old_data.split():
+        #     if t.endswith('}'):
+        #         new_data= t.replace("}", "") # get rid of last bracket
+        # for f in old_data.split():
+        #     if f.isspace():
+        #         new_data= t.replace(" ", "") # get rid of white space
+        # new_data = float(new_data)
+        # return new_data
+
+        oldData = str(data)
+        if (varName + "': ") in oldData == True:
+            return "ERROR: Cannot find '", varName, "' in log data"
+        
+        x = "': "
+
+        lhs, rhs = data.split(x, 1)
+        myData = ""
+        print len(oldData)
+
+        for letter in rhs.split():
+            if letter == "}":
+                break;
+            else:
+                myData = myData + letter
+
+        return myData
+
+
+
+
+    def _analyse_data(self, string_data):
+        #self.curr_alt = self._convert_data_to_number(string_data)
+        ans = self._convert_data_to_number(string_data, "varName")
+        #ans = string_data
+        print "varName = ", ans
 
     def _connection_failed(self, link_uri, msg):
         """Callback when connection initial connection fails (i.e no Crazyflie
