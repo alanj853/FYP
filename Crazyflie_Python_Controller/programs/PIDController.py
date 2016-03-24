@@ -9,52 +9,48 @@ from matplotlib.figure import Figure
 
 class PIDController:
 
-	name = ""
-	errorAccum = [0]
-	xAxis = [0]
-	Kp = 5;
-	Ki = 1;
-	Kd = 1;
-	maxError = 0
-	minError = 0
-	maxIncr = 2500
-	minIncr = -1*maxIncr
-	count = 0
-	errorThreshold = 0.25
-	lastError = 0
-
+	
 	def __init__(self, controllerName):
-		# self.Kp = kp
-		# self.Ki = ki
-		# self.Kd = kd
-		# self.maxIncr = maxIncr
-		# self.errorThreshold = errorThreshold
 		self.name = controllerName
 		print "PID Controller Created. Name = ", self.name
 		name = "Plot for PID controller ", self.name
-		#self.plot1 = Plotter(name)
-		#t1 = Thread(target=self.plot1.plot)
+		self._errorAccum = [0]
+		self.xAxis = [0]
+		self.Kp = 0;
+		self.Ki = 0;
+		self.Kd = 0;
+		self.maxError = 0
+		self.minError = 0
+		self.maxIncr = 2500
+		self.minIncr = -1*self.maxIncr
+		self.count = 0
+		self.errorThreshold = 0.25
+		self.lastError = 0
 		
 
-	def determineIncrement(self, targetAlt, currentAlt):
-		error = targetAlt - currentAlt;
+	def _determineIncrement(self, target, current):
+		error = target - current;
+		#print "IN ", self.name, " : ", target , " - ", current, " = " , error
 		self.lastError = error
 		if abs(error) < self.errorThreshold:
 			error = 0
-		self.errorAccum.append(error)
+		self._errorAccum.append(error)
+		#print self.name, ": added ", error, " to list from ", target , " - ", current
 
-		self.plot1.Y1 = self.errorAccum
-		self.plot1.XMin1 = 0
-		self.plot1.XMax1 = self.count
-		self.plot1.X1.append(self.count)
-		self.plot1.YMax1 = max(self.errorAccum)
-		self.plot1.YMin1 = min(self.errorAccum)
-		self.count = self.count + 1
+		#print self.name, " = {", self._errorAccum , "}"
+
+		# self.plot1.Y1 = self._errorAccum
+		# self.plot1.XMin1 = 0
+		# self.plot1.XMax1 = self.count
+		# self.plot1.X1.append(self.count)
+		# self.plot1.YMax1 = max(self._errorAccum)
+		# self.plot1.YMin1 = min(self._errorAccum)
+		# self.count = self.count + 1
 
 		P = self._determineProportional(error)
-		I = self._determineIntegral(self.errorAccum)
-		D = self._determineDerivative(self.errorAccum)
-		print "For Error = ", error ,", P = ", P, " I = ", I, " D = ", D
+		I = self._determineIntegral(self._errorAccum)
+		D = self._determineDerivative(self._errorAccum)
+		#print "Controller ", self.name, ": For Error = ", error ,", P = ", P, " I = ", I, " D = ", D
 
 		inc = P + I + D
 
@@ -64,32 +60,31 @@ class PIDController:
 			inc = self.minIncr
 
 		return inc
-		#return 100
 
-	def close(self):
-		#self.plot1.closePlot()
-		self.top.destroy()
 
 	def getLastError(self):
 		return self.lastError
 
 	def _determineProportional(self, error):
 		P = self.Kp*error
+		#print "P = ", self.Kp, " * ", error, " = ", P
 		return P;
 
-	def _determineIntegral(self, errorAccum):
-		return self.Ki*sum(errorAccum);
+	def _determineIntegral(self, _errorAccum):
+		#print self.name, ": ", _errorAccum
+		return self.Ki*sum(_errorAccum);
 		
 
-	def _determineDerivative(self, errorAccum):
-		l = len(errorAccum)
-		currentError = errorAccum[l-1]
-		previousError = errorAccum[l-2]
+	def _determineDerivative(self, _errorAccum):
+		l = len(_errorAccum)
+		currentError = _errorAccum[l-1]
+		previousError = _errorAccum[l-2]
 		D = self.Kd*(currentError - previousError)
+		#print "D = ", self.Kd, " * (", currentError , " - ", previousError, ") = ", D
 		return D; ## will return current slope
 
 	def getErrorAccum(self):
-		return self.errorAccum;
+		return self._errorAccum;
 
 	def getxAxis(self):
 		return self.xAxis;

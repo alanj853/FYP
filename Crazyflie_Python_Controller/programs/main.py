@@ -33,19 +33,8 @@ from UDP_Client import UDP_Client
 
 
 class FlightController:
-    is_connected = False ## is connected to PC via radio
-    best_matrix = "Not Assigned" ## the sub frame with the most free space -- see documentation
-    turn_off_UDP_client = False;
-    _motors_on = True; ## variable for motors on
-    _client_ready = False 
-    windows_linux = "linux" ## type of machine client is running on
-    curr_alt = 45;
-    log_battery = True
-    start_time = 0
-    current_thrust = 0
-    altHold = False
-    thrustArray = [0]
-    calculate = True
+
+
 
 
 
@@ -67,26 +56,38 @@ class FlightController:
         # initial logger, UDP client and PLotter
         self._logger = Logger(self._cf)
         self._udpClient = UDP_Client("127.0.0.1", 5000)
-        self.pidctrl_alt = PIDController("Alt controller")
-        self.pidctrl_x = PIDController("Gyro.x controller")
-        self.pidctrl_y = PIDController("Gyro.y controller")
+        self.pidctrlr_alt = PIDController("Alt controller")
+        self.pidctrlr_x = PIDController("Gyro.x controller")
+        self.pidctrlr_y = PIDController("Gyro.y controller")
 
         # add variables to log
         self._logger.logNewVar("baro.asl", "float")
         self._logger.logNewVar("gyro.x", "float")
         self._logger.logNewVar("gyro.y", "float")
 
-        self.pidctrl_alt.setPGain(5)
-        self.pidctrl_alt.setIGain(1)
-        self.pidctrl_alt.setDGain(1)
+        self.pidctrlr_alt.setPGain(5)
+        self.pidctrlr_alt.setIGain(1)
+        self.pidctrlr_alt.setDGain(1)
 
-        self.pidctrl_x.setPGain(5)
-        self.pidctrl_x.setIGain(1)
-        self.pidctrl_x.setDGain(1)
+        self.pidctrlr_x.setPGain(5)
+        self.pidctrlr_x.setIGain(1)
+        self.pidctrlr_x.setDGain(1)
 
-        self.pidctrl_y.setPGain(5)
-        self.pidctrl_y.setIGain(1)
-        self.pidctrl_y.setDGain(1)
+        self.pidctrlr_y.setPGain(5)
+        self.pidctrlr_y.setIGain(1)
+        self.pidctrlr_y.setDGain(1)
+
+        self.plotter1 = Plotter("Plot 1")
+
+        is_connected = False ## is connected to PC via radio
+        best_matrix = "Not Assigned" ## the sub frame with the most free space -- see documentation
+        turn_off_UDP_client = False;
+        _motors_on = True; ## variable for motors on
+        windows_linux = "linux" ## type of machine client is running on
+        curr_alt = 45;
+        start_time = 0
+        current_thrust = 0
+        altHold = False
 
 
 
@@ -97,14 +98,9 @@ class FlightController:
         Thread(target=self._logger._begin_logging).start()
         #Thread(target=self._udpClient.run).start()
 
-        t1 = Thread(target=self.pidctrl_alt._makeGUI)
-        t1.start();
-        t2 = Thread(target=self.pidctrl_x._makeGUI)
-        t2.start();
+        Thread(target=self.plotter1.plot).start()
+        #Thread(target=self.plotter2.plot).start()
 
-        t3 = Thread(target=self.pidctrl_y._makeGUI)
-        t3.start();
-        
         
         print "Connected to ", link_uri
     
@@ -124,7 +120,7 @@ class FlightController:
         """Callback when the Crazyflie is disconnected (called in all cases)"""
         print "Disconnected from %s" % link_uri
         self.is_connected = False
-        self.log_battery = False;
+
 
     
 
@@ -148,17 +144,29 @@ class FlightController:
         currAlt = self._logger.retrieveVar("baro.asl")
         currXaccel = self._logger.retrieveVar("gyro.x")
         currYaccel = self._logger.retrieveVar("gyro.y")
-        thrustFactor = 0
-        if self.calculate == True:
-            thrustFactor = self.pidctrl_alt.determineIncrement(targetAlt, currAlt)
+
+        # print "currAlt = ", currAlt
+        # print "currXaccel = ", currXaccel
+        # print "currYaccel = ", currYaccel
+
+        thrustFactor1 = self.pidctrlr_alt._determineIncrement(targetAlt, currAlt)
+        y1 = self.pidctrlr_alt.getErrorAccum()
+
+        thrustFactor2 = self.pidctrlr_x._determineIncrement(0, currXaccel)
+        y2 = self.pidctrlr_x.getErrorAccum()
+
+        thrustFactor3 = self.pidctrlr_y._determineIncrement(0, currYaccel)
+        y3 = self.pidctrlr_y.getErrorAccum()
+
+        self.plotter1.update(y1, y2, y3)
+
         thrust = self.current_thrust
-        thrust = thrust + thrustFactor
+        thrust = thrust + thrustFactor1 #+ thrustFactor2 + thrustFactor3
         print "thrust is now: ", thrust
         return thrust
 
 
     def _turnOffAllProcesses(self):
-        self.pidctrl_alt.close()
         self._udpClient.disconnectClient()
   
         

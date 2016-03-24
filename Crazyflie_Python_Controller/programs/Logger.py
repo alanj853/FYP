@@ -6,15 +6,12 @@ logging.basicConfig(level=logging.ERROR)
 
 class Logger:
 
-    logger = 0;
-    _cf = ""
-    cfData = "not used"
-    loggingStarted = False
-
     def __init__(self, crazyflie):
         print "Logger created"
         self._logger = LogConfig(name="MyLogConfig", period_in_ms=10)
         self._cf = crazyflie
+        self.cfData = "not used"
+        self.loggingStarted = False
         
     def _begin_logging(self):
         print "Starting logger..."

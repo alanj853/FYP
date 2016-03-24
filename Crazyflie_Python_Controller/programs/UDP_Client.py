@@ -4,16 +4,14 @@ import os
 import sys
 
 class UDP_Client:
-	PORT  = 0
-	IP = ""
-	sock = ""
-	MESSAGE = "CF:Client-Request_Coordinates"
-	data = "no data"
-
+	
 	def __init__(self, ip, port):
 		self.PORT = port
 		self.IP = ip
 		print "UDP Client object created at add: ", ip, " on port: ", port
+		self.sock = ""
+		self.MESSAGE = "CF:Client-Request_Coordinates"
+		self.data = "no data"
 
 	def run(self):
 		# assign class variables to local variables. It makes code cleaner as we don't have to type "self" all of the time

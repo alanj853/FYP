@@ -8,34 +8,50 @@ from SubPlot import SubPlot
 
 class Plotter():
 
-	_plotData = True
-	_closePlot = False
-	X1 = []
-	Y1 = []
-	XMin1 = 0
-	XMax1 = 0
-	YMin1 = 0
-	YMax1 = 0
-	YLabel1 = ""
-	XLabel1 = ""
-
 	def __init__(self, title):
 		print "Plot object '", title, "' created"
 		self._title = title
 
-	def plot(self):
-		self.fig = plt.figure()
-		self.ax1 = self.fig.add_subplot(1,1,1)
-		self.ax1.set_title(self._title)
+		self._plotData = True
+		self._closePlot = False
+		self.X1 = []
+		self.Y1 = []
+		self.Y2 = []
+		self.Y3 = []
+		self.XMin1 = 0
+		self.XMax1 = 0
+		self.YMin1 = 0
+		self.YMax1 = 0
+		self.YLabel1 = ""
+		self.XLabel1 = ""
 
-		ani = animation.FuncAnimation(self.fig, self.update, interval=100)
+	def plot(self):
+		#plt.ion()
+
+		self.fig = plt.figure()
+		self.ax1 = self.fig.add_subplot(3,1,1)
+		self.ax2 = self.fig.add_subplot(3,1,2)
+		self.ax3 = self.fig.add_subplot(3,1,3)
+		self.ax1.set_title("Altitude")
+		self.ax2.set_title("Gyro X")
+		self.ax3.set_title("Gyro Y")
+
+		ani = animation.FuncAnimation(self.fig, self.updatePlot, interval=100)
 
  		plt.show()
 
-	def update(self,i):
+	def updatePlot(self, i):
 		plt.cla()
-
 		self.ax1.plot(self.Y1)
+		self.ax2.plot(self.Y2)
+		self.ax3.plot(self.Y3)
+
+	def update(self, y1, y2, y3):
+		self.Y1 = y1
+		self.Y2 = y2
+		self.Y3 = y3
+
+
 
 	def closePlot(self):
 		plt.close()
