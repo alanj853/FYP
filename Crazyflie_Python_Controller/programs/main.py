@@ -6,14 +6,11 @@ IS WORKING
 ONLY OPEN IN SUBLIME TEXT as other programs might fuck up the format
 """
 
-import socket
 import os
 import sys
 from threading import Thread
 import time, math
 from datetime import datetime, date
-import matplotlib.pyplot as plt
-import numpy as np
 
 #FIXME: Has to be launched from within the example folder
 sys.path.append("../lib")
@@ -24,14 +21,15 @@ from cflib.crazyflie import Crazyflie
 
 import cflib.crtp
 from cflib.crazyflie import Crazyflie
-from cflib.crazyflie.log import LogConfig
 
 from PIDController import PIDController
-import logging
+from Logger import Logger
+from Plotter import Plotter
+from UDP_Client import UDP_Client
 
 
 
-logging.basicConfig(level=logging.ERROR)
+
 
 
 class FlightController:
@@ -45,7 +43,6 @@ class FlightController:
     log_battery = True
     start_time = 0
     current_thrust = 0
-    pidctrl = PIDController()
     altHold = False
     thrustArray = [0]
     calculate = True
@@ -67,13 +64,47 @@ class FlightController:
 
         print "Connecting to %s" % link_uri
 
+        # initial logger, UDP client and PLotter
+        self._logger = Logger(self._cf)
+        self._udpClient = UDP_Client("127.0.0.1", 5000)
+        self.pidctrl_alt = PIDController("Alt controller")
+        self.pidctrl_x = PIDController("Gyro.x controller")
+        self.pidctrl_y = PIDController("Gyro.y controller")
+
+        # add variables to log
+        self._logger.logNewVar("baro.asl", "float")
+        self._logger.logNewVar("gyro.x", "float")
+        self._logger.logNewVar("gyro.y", "float")
+
+        self.pidctrl_alt.setPGain(5)
+        self.pidctrl_alt.setIGain(1)
+        self.pidctrl_alt.setDGain(1)
+
+        self.pidctrl_x.setPGain(5)
+        self.pidctrl_x.setIGain(1)
+        self.pidctrl_x.setDGain(1)
+
+        self.pidctrl_y.setPGain(5)
+        self.pidctrl_y.setIGain(1)
+        self.pidctrl_y.setDGain(1)
+
+
+
     ## this method is called when a successful connection to the CF has been made
     def _connected(self, link_uri):
 
         Thread(target=self._motor_controller).start() # start the thread for controlling the motors
-        #Thread(target=self._start_gui).start()
-        Thread(target=self._begin_logging).start()
-        Thread(target=self._plot_data).start()
+        Thread(target=self._logger._begin_logging).start()
+        #Thread(target=self._udpClient.run).start()
+
+        t1 = Thread(target=self.pidctrl_alt._makeGUI)
+        t1.start();
+        t2 = Thread(target=self.pidctrl_x._makeGUI)
+        t2.start();
+
+        t3 = Thread(target=self.pidctrl_y._makeGUI)
+        t3.start();
+        
         
         print "Connected to ", link_uri
     
@@ -95,34 +126,9 @@ class FlightController:
         self.is_connected = False
         self.log_battery = False;
 
-    # function to control UDP communication with server
-    def _UDP_Client(self):
-        UDP_IP = "127.0.0.1"
-        UDP_PORT = 4446
-        MESSAGE = "CF:Client-Request_Coordinates"
-        BUFFER_SIZE = 256
-         
-        print "UDP target IP:", UDP_IP
-        print "UDP target port:", UDP_PORT
-        print "Sending Message:", MESSAGE
-        x = "Not assigned"
+    
 
-        self._client_ready = True;
-        i = 0;
-        data = ""
-        
-        while(self.turn_off_UDP_client == False) :
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP # nternet
-            sock.connect((UDP_IP, UDP_PORT)) ## connect to port and host
-            sock.sendto(MESSAGE,(UDP_IP, UDP_PORT)) ## send message to request data from server
-            data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-            self.best_matrix = data
-            time.sleep(.25);
-
-        sock.close()
-        print "Client Closed"
-
-    def getAlt(self):
+    def getAverage(self):
         thrustCompensation = .04
         altList = []
         s_time = time.time()
@@ -133,95 +139,31 @@ class FlightController:
             curr_time = time.time()
         averageAlt = sum(altList)/len(altList)
 
-        #if(self.current_thrust > 45000):
-        #    averageAlt = averageAlt + thrustCompensation*(self.current_thrust - 45000)/1000
 
         print "Return alt = ", averageAlt
         return averageAlt
 
 
     def calNewThrust(self, targetAlt):
-        currAlt = self.getAlt()
+        currAlt = self._logger.retrieveVar("baro.asl")
+        currXaccel = self._logger.retrieveVar("gyro.x")
+        currYaccel = self._logger.retrieveVar("gyro.y")
         thrustFactor = 0
         if self.calculate == True:
-            thrustFactor = self.pidctrl.determineIncrement(targetAlt, currAlt)
+            thrustFactor = self.pidctrl_alt.determineIncrement(targetAlt, currAlt)
         thrust = self.current_thrust
         thrust = thrust + thrustFactor
         print "thrust is now: ", thrust
         return thrust
 
 
-    
+    def _turnOffAllProcesses(self):
+        self.pidctrl_alt.close()
+        self._udpClient.disconnectClient()
   
-
-    def _plot_data(self):
-        X = []
-        X2 = []
-        Y = self.pidctrl.getErrorAccum()
-        thrustArray = []
-        x = 0
-        #f,lines = plt.subplots(2, sharex=True)
-        f, (ax1, ax2) = plt.subplots(2,1)
-
-        plt.ion()
-        graph1 = ax1.plot([0],Y)[0]
-        graph2 = ax2.plot([0],Y)[0]
-        xMin = 0
-        xMax = len(le.pidctrl.getErrorAccum())
-        yMin = -5 #le.pidctrl.getMinError()
-        yMax = 5 #le.pidctrl.getMaxError()
-        plt.axis([xMin, xMax, yMin, yMax])
-        plt.title('Error vs Time')
-        plt.xlabel('Sample No.')
-        plt.ylabel('Error (Target Alt - Current Alt)')
-        while True:
-            if self.altHold == True:
-                Y = self.pidctrl.getErrorAccum()
-                X = self.pidctrl.getxAxis()
-                xMax = len(self.pidctrl.getErrorAccum())
-                #plt.axis([xMin, xMax, yMin, yMax])
-                #graph2[0].set_ydata(Y)
-                #graph2[0].set_xdata(X)
-                ax1.set_xlim(xMin, xMax)
-                ax1.set_ylim(yMin, yMax)
-                ax1.figure.canvas.draw()
-                while len(X) != len(Y):
-                    Y.append(self.pidctrl.getLastError())
-                graph1.set_data(X,Y)
-                
-                while self.calculate == False:
-                    d = 4
-                thrustArray = self.thrustArray
-                ax2.set_xlim(xMin, xMax)
-                ax2.set_ylim(0, 60000)
-                ax2.figure.canvas.draw()
-
-                while len(X) != len(thrustArray):
-                    thrustArray.append(self.current_thrust)
-
-                graph2.set_data(X,thrustArray)
-
-                # graph2[1].set_ydata(Y)
-                # graph2[1].set_xdata(thrustArray)
-
-                plt.draw()
-                plt.pause(0.001)
         
-
-
-
-
-
     # auto pilot function
     def _auto_pilot(self, curr_thrust, curr_roll, curr_pitch):
-        #t = Thread(target=self._UDP_Client);
-        #t.start()
-        #while(self._client_ready ==False):
-            # wait for client thread to start
-        #    x=4; ## I had to put some outcome here for while loop to work. x =4 does nothing
-
-
-        
         char = self._getch(); # get the character that was pressed by the user
         thrust = curr_thrust;
         roll = curr_roll;
@@ -279,9 +221,7 @@ class FlightController:
             print "Thrust = ", thrust, " Roll = ",roll, " pitch = ", pitch
             time.sleep(.1)
             char = self._getch();
-        #t.stop()
         print "Done AutoPilot"
-        #print "target x =", self.target_x
 
 
     # function to set thrust, roll, pitch and yaw parameters on crazyflie    
@@ -312,7 +252,7 @@ class FlightController:
                 #self._cf.param.set_value('flightmode.althold', "True")
                 #self._auto_pilot(self.current_thrust, calib_r, calib_p)
                 altHold = True
-                targetAlt = self.getAlt()
+                targetAlt = self._logger.retrieveVar("baro.asl")
                 
                 print "Target Alt: ", targetAlt
                 
@@ -431,18 +371,9 @@ class FlightController:
                 print "Calibration Done"
                 break
 
-            #print "current alt = ", self.curr_alt
-                
-        params = []
-        params.append(calib_r);
-        params.append(calib_p);
-        params.append(self.current_thrust)
-        
-        print "Sent Roll = ", calib_r
-        print "Sent Pitch = ", calib_p
-        print "Sent Thrust = ", self.current_thrust
+
+        self._turnOffAllProcesses()
         self._cf.close_link()
-        return params;
     
     
     
@@ -576,14 +507,5 @@ if __name__ == '__main__':
         # Close opened file
         fo.close()
         le.turn_off_UDP_client = True;
-        # plt.plot(le.pidctrl.getErrorAccum())
-        # xMin = 0
-        # xMax = len(le.pidctrl.getErrorAccum())
-        # yMin = le.pidctrl.getMinError()
-        # yMax = le.pidctrl.getMaxError()
-        # plt.axis([xMin, xMax, yMin, yMax])
-        # plt.xlabel('Sample No.')
-        # plt.ylabel('Error (Target Alt - Current Alt)')
-        # plt.show()
     else:
         print "No Crazyflies found, cannot run example"

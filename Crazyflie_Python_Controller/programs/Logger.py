@@ -2,6 +2,8 @@ import logging
 from cflib.crazyflie.log import LogConfig
 from threading import Thread
 
+logging.basicConfig(level=logging.ERROR)
+
 class Logger:
 
     logger = 0;
@@ -14,18 +16,13 @@ class Logger:
         self._logger = LogConfig(name="MyLogConfig", period_in_ms=10)
         self._cf = crazyflie
         
-    def startLogger(self):
-        print "starting new thread..."
-        #Thread(target=self._begin_logging).start()
-        print "new thread started"
-        self._begin_logging()
-
     def _begin_logging(self):
         print "Starting logger..."
 
         # Adding the configuration cannot be done until a Crazyflie is
         # connected, since we need to check that the variables we
         # would like to log are in the TOC.
+        #self._logger.add_variable("baro.asl", "float")
         self._cf.log.add_config(self._logger)
         if self._logger.valid:
             # This callback will receive the data
@@ -42,7 +39,8 @@ class Logger:
 
     def logNewVar(self, varName, numberType):
         self._logger.add_variable(varName, numberType) ## add a logable  parameter to logConfig object. Number type is usually "float". example: self._logger.add_variable('baro.asl', "float")
-        
+        #self._logger.add_variable("baro.asl", "float")
+        #self._logger.add_variable("gyro.x", "float")
         print "Var '", varName, "' of type '", numberType, "' added to Logger"
 
 
@@ -58,7 +56,7 @@ class Logger:
         
         
     def _convert_data_to_number(self, data , varName):
-        print " in _convert_data_to_number"
+        #print " in _convert_data_to_number"
         oldData = str(data)
         if oldData == "":
             return "ERROR: no data"
@@ -67,25 +65,30 @@ class Logger:
             return "ERROR: Cannot find '", varName, "' in log data"
         
         oldData = oldData.split(varName + "': ")
-        print oldData
         myData = ""
 
         rhsData = list(oldData[1])
-        print "dfsdf"
         for letter in rhsData:
             if letter == '}' or letter == ',':
                 break;
             else:
                 myData = myData + letter
 
-        return myData
+        return float(myData)
 
 
 
 
     def retrieveVar(self, varName):
-        print " in retrieveVar"
-        #ans = self._convert_data_to_number(self.cfData, varName)
-        ans = self.loggingStarted
+        ans = self._convert_data_to_number(self.cfData, varName)
         print varName ," = ", ans
         return ans
+
+    def retrieveVars(self, varNames):
+        newVars = []
+        for varName in varNames:
+            ans = self._convert_data_to_number(self.cfData, varName)
+            print varName ," = ", ans
+            newVars.append(ans)
+        print ""
+        return newVars
