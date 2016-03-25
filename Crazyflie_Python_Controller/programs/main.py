@@ -28,15 +28,7 @@ from Plotter import Plotter
 from UDP_Client import UDP_Client
 
 
-
-
-
-
 class FlightController:
-
-
-
-
 
     # init function to connect to crazyflie
     def __init__(self, link_uri):
@@ -79,15 +71,16 @@ class FlightController:
 
         self.plotter1 = Plotter("Plot 1")
 
-        is_connected = False ## is connected to PC via radio
-        best_matrix = "Not Assigned" ## the sub frame with the most free space -- see documentation
-        turn_off_UDP_client = False;
-        _motors_on = True; ## variable for motors on
-        windows_linux = "linux" ## type of machine client is running on
-        curr_alt = 45;
-        start_time = 0
-        current_thrust = 0
-        altHold = False
+        self.best_matrix = "Not Assigned" ## the sub frame with the most free space -- see documentation
+        self.turn_off_UDP_client = False;
+        self._motors_on = True; ## variable for motors on
+        self.windows_linux = "linux" ## type of machine client is running on
+        self.curr_alt = 45;
+        self.start_time = 0
+        self.current_thrust = 0
+        self.current_roll = 0
+        self.current_pitch = 0
+        self.altHold = False
 
 
 
@@ -99,7 +92,6 @@ class FlightController:
         #Thread(target=self._udpClient.run).start()
 
         Thread(target=self.plotter1.plot).start()
-        #Thread(target=self.plotter2.plot).start()
 
         
         print "Connected to ", link_uri
@@ -140,30 +132,42 @@ class FlightController:
         return averageAlt
 
 
-    def calNewThrust(self, targetAlt):
+    def calNewThrust(self, targetAlt, targetX, targetY):
         currAlt = self._logger.retrieveVar("baro.asl")
-        currXaccel = self._logger.retrieveVar("gyro.x")
-        currYaccel = self._logger.retrieveVar("gyro.y")
+        currX = self._logger.retrieveVar("gyro.x")
+        currY = self._logger.retrieveVar("gyro.y")
 
         # print "currAlt = ", currAlt
         # print "currXaccel = ", currXaccel
         # print "currYaccel = ", currYaccel
 
         thrustFactor1 = self.pidctrlr_alt._determineIncrement(targetAlt, currAlt)
-        y1 = self.pidctrlr_alt.getErrorAccum()
+        t = self.pidctrlr_alt.getErrorAccum()
 
-        thrustFactor2 = self.pidctrlr_x._determineIncrement(0, currXaccel)
-        y2 = self.pidctrlr_x.getErrorAccum()
+        thrustFactor2 = self.pidctrlr_x._determineIncrement(targetX, currX)
+        x = self.pidctrlr_x.getErrorAccum()
 
-        thrustFactor3 = self.pidctrlr_y._determineIncrement(0, currYaccel)
-        y3 = self.pidctrlr_y.getErrorAccum()
+        thrustFactor3 = self.pidctrlr_y._determineIncrement(targetY, currY)
+        y = self.pidctrlr_y.getErrorAccum()
 
-        self.plotter1.update(y1, y2, y3)
+        self.plotter1.update(t, x, y)
 
         thrust = self.current_thrust
-        thrust = thrust + thrustFactor1 #+ thrustFactor2 + thrustFactor3
-        print "thrust is now: ", thrust
-        return thrust
+        roll = self.current_roll
+        pitch = self.current_pitch
+
+        thrust = thrust + thrustFactor1 
+        roll = roll + thrustFactor2
+        pitch = pitch + thrustFactor3
+        
+        print "thrust is now: ", thrust, " Roll is now: ", roll, " Pitch is now: ", pitch
+
+        factorList = []
+        factorList.append(thrust)
+        factorList.append(roll)
+        factorList.append(pitch)
+
+        return factorList
 
 
     def _turnOffAllProcesses(self):
@@ -241,26 +245,30 @@ class FlightController:
     def _motor_controller(self):
         self._print_controls()
         self.start_time = time.time()
-        calib_r = 0
-        calib_p = 0
+        self.current_roll = 0
+        self.current_pitch = 0
         self.current_thrust = 15000
         targetAlt = 0
+        targetX = 0
+        targetY = 0
         altHold = False
         char = ""
 
         while 1:
             if self.current_thrust < 15000:
                 self.current_thrust = 15000
-            self._set_movement(calib_r, calib_p, 0, self.current_thrust)
+            self._set_movement(self.current_roll, self.current_pitch, 0, self.current_thrust)
             
             char = self._getch()
             self.altHold = altHold
             if char == "h":
                 print "hover ON"
                 #self._cf.param.set_value('flightmode.althold', "True")
-                #self._auto_pilot(self.current_thrust, calib_r, calib_p)
+                #self._auto_pilot(self.current_thrust, self.current_roll, self.current_pitch)
                 altHold = True
                 targetAlt = self._logger.retrieveVar("baro.asl")
+                targetX = self._logger.retrieveVar("gyro.x")
+                targetY = self._logger.retrieveVar("gyro.y")
                 
                 print "Target Alt: ", targetAlt
                 
@@ -273,7 +281,10 @@ class FlightController:
                     print "Motors Now on"
 
             if altHold == True:
-                self.current_thrust = self.calNewThrust(targetAlt)
+                arr = self.calNewThrust(targetAlt, targetX, targetY)
+                self.current_thrust = arr[0]
+                self.current_roll = arr[1]
+                self.current_pitch = arr[2]
 
 
 
@@ -318,49 +329,49 @@ class FlightController:
             if char == "\x1b[C" or char == "M": ## this is the right arrow on the keyboard translation
                 print "moving right "
                 #if altHold == False:
-                self._set_movement(15, calib_p, 0, self.current_thrust)
+                self._set_movement(15, self.current_pitch, 0, self.current_thrust)
                 time.sleep(.25)
-                calib_r += .5
-                print "     roll changed to: ", calib_r
-                self._set_movement(calib_r, calib_p, 0, self.current_thrust)
+                self.current_roll += .5
+                print "     roll changed to: ", self.current_roll
+                self._set_movement(self.current_roll, self.current_pitch, 0, self.current_thrust)
             if char == "\x1b[D" or char == "K":
                 print "moving left "
                 #if altHold == False:
-                self._set_movement(-15, calib_p, 0, self.current_thrust)
+                self._set_movement(-15, self.current_pitch, 0, self.current_thrust)
                 time.sleep(.25)
-                calib_r -= .5
-                print "     roll changed to: ", calib_r
-                self._set_movement(calib_r, calib_p, 0, self.current_thrust)
+                self.current_roll -= .5
+                print "     roll changed to: ", self.current_roll
+                self._set_movement(self.current_roll, self.current_pitch, 0, self.current_thrust)
 
             ## Pitch Control
             if char == "\x1b[B" or char == "P":
                 print "moving backwards "
                 #if altHold == False:
-                self._set_movement(calib_r, -15, 0, self.current_thrust)
+                self._set_movement(self.current_roll, -15, 0, self.current_thrust)
                 time.sleep(.25)
-                calib_p -= .5
-                print "     pitch changed to: ", calib_p
-                self._set_movement(calib_r, calib_p, 0, self.current_thrust)
+                self.current_pitch -= .5
+                print "     pitch changed to: ", self.current_pitch
+                self._set_movement(self.current_roll, self.current_pitch, 0, self.current_thrust)
             if char == "\x1b[A" or char == "H":
                 print "moving forwards "
                 #if altHold == False:
-                self._set_movement(calib_r, 15, 0, self.current_thrust)
+                self._set_movement(self.current_roll, 15, 0, self.current_thrust)
                 time.sleep(.25)
-                calib_p += .5
-                print "     pitch changed to: ", calib_p
-                self._set_movement(calib_r, calib_p, 0, self.current_thrust)
+                self.current_pitch += .5
+                print "     pitch changed to: ", self.current_pitch
+                self._set_movement(self.current_roll, self.current_pitch, 0, self.current_thrust)
 
     	    ## Yaw Control	    
     	    if char == "a":
                 print "turning left"
-                self._set_movement(calib_r, calib_p, -50, self.current_thrust)
+                self._set_movement(self.current_roll, self.current_pitch, -50, self.current_thrust)
                 time.sleep(.25)
-                self._set_movement(calib_r, calib_p, 0, self.current_thrust)
+                self._set_movement(self.current_roll, self.current_pitch, 0, self.current_thrust)
     	    if char == "d":
         		print "turning right"
-        		self._set_movement(calib_r, calib_p, 50, self.current_thrust)
+        		self._set_movement(self.current_roll, self.current_pitch, 50, self.current_thrust)
                         time.sleep(.25)
-        		self._set_movement(calib_r, calib_p, 0, self.current_thrust)
+        		self._set_movement(self.current_roll, self.current_pitch, 0, self.current_thrust)
 	    
 	        ## Landing
             if char == "l":
@@ -369,7 +380,7 @@ class FlightController:
                 while self.current_thrust >= 15000 and l_char != "\n":
                     self.current_thrust = self.current_thrust - 750
                     print "     current thrust = ", self.current_thrust
-                    self._set_movement(calib_r, calib_p, 0, self.current_thrust)
+                    self._set_movement(self.current_roll, self.current_pitch, 0, self.current_thrust)
                     l_char = self._getch()
                     time.sleep(.5)
                 #break
