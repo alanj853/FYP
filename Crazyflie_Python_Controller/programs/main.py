@@ -89,7 +89,7 @@ class FlightController:
 
         Thread(target=self._motor_controller).start() # start the thread for controlling the motors
         Thread(target=self._logger._begin_logging).start()
-        #Thread(target=self._udpClient.run).start()
+        Thread(target=self._udpClient.run).start()
 
         Thread(target=self.plotter1.plot).start()
 
@@ -172,6 +172,14 @@ class FlightController:
 
     def _turnOffAllProcesses(self):
         self._udpClient.disconnectClient()
+		
+	def _detectObject(self):
+		xErr = self._udpClient.getXerr()
+		yErr = self._udpClient.getYerr()
+		
+		self.curr_thrust = self.curr_thrust - yErr
+		self.curr_roll = self.curr_roll + xErr/1000
+		print "Thrust = ", self.curr_thrust, " roll = ",self.curr_roll
   
         
     # auto pilot function
@@ -241,6 +249,7 @@ class FlightController:
         if self._motors_on == True:
             self._cf.commander.send_setpoint(roll, pitch, yaw, thrust)
 
+
         
     def _motor_controller(self):
         self._print_controls()
@@ -281,10 +290,12 @@ class FlightController:
                     print "Motors Now on"
 
             if altHold == True:
-                arr = self.calNewThrust(targetAlt, targetX, targetY)
-                self.current_thrust = arr[0]
-                self.current_roll = arr[1]
-                self.current_pitch = arr[2]
+				self._detectObject()
+				#arr = self.calNewThrust(targetAlt, targetX, targetY)
+                #self.current_thrust = arr[0]
+                #self.current_roll = arr[1]
+                #self.current_pitch = arr[2]
+				#
 
 
 
