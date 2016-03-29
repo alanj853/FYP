@@ -35,7 +35,7 @@ class FlightController:
         #Initialize and run the example with the specified link_uri """
         self.is_connected = True
         self._cf = Crazyflie()
-
+        self.plotOn = False
         self._cf.connected.add_callback(self._connected)
         self._cf.disconnected.add_callback(self._disconnected)
         self._cf.connection_failed.add_callback(self._connection_failed)
@@ -69,7 +69,7 @@ class FlightController:
         self.pidctrlr_y.setIGain(1)
         self.pidctrlr_y.setDGain(1)
 
-        self.plotter1 = Plotter("Plot 1")
+        self.plotter1 = Plotter("Plot 1", self.plotOn)
 
         self.best_matrix = "Not Assigned" ## the sub frame with the most free space -- see documentation
         self.turn_off_UDP_client = False;

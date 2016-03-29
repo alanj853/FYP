@@ -8,53 +8,59 @@ from SubPlot import SubPlot
 
 class Plotter():
 
-	def __init__(self, title):
-		print "Plot object '", title, "' created"
+	def __init__(self, title, plotOn):
 		self._title = title
-
-		self._plotData = True
-		self._closePlot = False
-		self.X1 = []
-		self.Y1 = []
-		self.Y2 = []
-		self.Y3 = []
-		self.XMin1 = 0
-		self.XMax1 = 0
-		self.YMin1 = 0
-		self.YMax1 = 0
-		self.YLabel1 = ""
-		self.XLabel1 = ""
+		self.plotOn = plotOn
+		if plotOn == True:
+			print "Plot object '", title, "' created"
+			self._plotData = True
+			self._closePlot = False
+			self.X1 = []
+			self.Y1 = []
+			self.Y2 = []
+			self.Y3 = []
+			self.XMin1 = 0
+			self.XMax1 = 0
+			self.YMin1 = 0
+			self.YMax1 = 0
+			self.YLabel1 = ""
+			self.XLabel1 = ""
+		else:
+			print "Plot is Off"
 
 	def plot(self):
 		#plt.ion()
+		if self.plotOn == True:
+			self.fig = plt.figure()
+			self.ax1 = self.fig.add_subplot(3,1,1)
+			self.ax2 = self.fig.add_subplot(3,1,2)
+			self.ax3 = self.fig.add_subplot(3,1,3)
+			self.ax1.set_title("Altitude")
+			self.ax2.set_title("Gyro X")
+			self.ax3.set_title("Gyro Y")
 
-		self.fig = plt.figure()
-		self.ax1 = self.fig.add_subplot(3,1,1)
-		self.ax2 = self.fig.add_subplot(3,1,2)
-		self.ax3 = self.fig.add_subplot(3,1,3)
-		self.ax1.set_title("Altitude")
-		self.ax2.set_title("Gyro X")
-		self.ax3.set_title("Gyro Y")
+			ani = animation.FuncAnimation(self.fig, self.updatePlot, interval=100)
 
-		ani = animation.FuncAnimation(self.fig, self.updatePlot, interval=100)
-
- 		plt.show()
+	 		plt.show()
 
 	def updatePlot(self, i):
-		plt.cla()
-		self.ax1.plot(self.Y1)
-		self.ax2.plot(self.Y2)
-		self.ax3.plot(self.Y3)
+		if self.plotOn == True:
+			plt.cla()
+			self.ax1.plot(self.Y1)
+			self.ax2.plot(self.Y2)
+			self.ax3.plot(self.Y3)
 
 	def update(self, y1, y2, y3):
-		self.Y1 = y1
-		self.Y2 = y2
-		self.Y3 = y3
+		if self.plotOn == True:
+			self.Y1 = y1
+			self.Y2 = y2
+			self.Y3 = y3
 
 
 
 	def closePlot(self):
-		plt.close()
+		if self.plotOn == True:
+			plt.close()
 
 	
 
