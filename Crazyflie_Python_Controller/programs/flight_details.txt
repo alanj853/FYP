@@ -629,3 +629,28 @@
 29-03-2016 14:27:33: Total Flight Time: 19 seconds MOTORS OFF
 29-03-2016 14:29:00: Total Flight Time: 21 seconds MOTORS OFF
 29-03-2016 14:30:05: Total Flight Time: 18 seconds MOTORS OFF
+29-03-2016 15:43:26: Total Flight Time: 7 seconds MOTORS OFF
+29-03-2016 15:44:29: Total Flight Time: 26 seconds MOTORS OFF
+29-03-2016 15:46:46: Total Flight Time: 109 seconds MOTORS OFF
+29-03-2016 15:47:32: Total Flight Time: 36 seconds MOTORS OFF
+29-03-2016 15:48:21: Total Flight Time: 37 seconds MOTORS OFF
+29-03-2016 15:50:08: Total Flight Time: 77 seconds MOTORS OFF
+29-03-2016 15:50:40: Total Flight Time: 17 seconds MOTORS OFF
+29-03-2016 15:52:53: Total Flight Time: 48 seconds MOTORS OFF
+29-03-2016 15:53:28: Total Flight Time: 15 seconds MOTORS OFF
+29-03-2016 15:58:12: Total Flight Time: 118 seconds MOTORS OFF
+29-03-2016 16:01:01: Total Flight Time: 70 seconds MOTORS OFF
+29-03-2016 16:05:00: Total Flight Time: 56 seconds MOTORS OFF
+29-03-2016 16:10:53: Total Flight Time: 88 seconds MOTORS OFF
+29-03-2016 16:11:38: Total Flight Time: 6 seconds MOTORS OFF
+29-03-2016 16:13:17: Total Flight Time: 70 seconds MOTORS OFF
+29-03-2016 16:14:37: Total Flight Time: 39 seconds MOTORS OFF
+29-03-2016 16:15:55: Total Flight Time: 22 seconds MOTORS OFF
+29-03-2016 16:16:30: Total Flight Time: 9 seconds MOTORS OFF
+29-03-2016 16:17:50: Total Flight Time: 21 seconds MOTORS OFF
+29-03-2016 16:20:00: Total Flight Time: 90 seconds MOTORS OFF
+29-03-2016 17:08:41: Total Flight Time: 136 seconds
+29-03-2016 17:09:08: Total Flight Time: 12 seconds
+29-03-2016 17:09:57: Total Flight Time: 18 seconds
+29-03-2016 17:10:34: Total Flight Time: 17 seconds
+29-03-2016 17:11:28: Total Flight Time: 23 seconds

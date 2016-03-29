@@ -16,54 +16,59 @@ class UDP_Client:
 		self.data = "no data"
 		self.Yerr = 0
 		self.Xerr = 0
+		self.runClient = True
 
 	def run(self):
-		# assign class variables to local variables. It makes code cleaner as we don't have to type "self" all of the time
-		# I have commmented out print statements here. You can uncomment them for debugging purposes but it will make overall output messy
-		MESSAGE = self.MESSAGE1
-		IP = self.IP
-		PORT = self.PORT
+		while(self.runClient == True):
+			# assign class variables to local variables. It makes code cleaner as we don't have to type "self" all of the time
+			# I have commmented out print statements here. You can uncomment them for debugging purposes but it will make overall output messy
+			MESSAGE = self.MESSAGE1
+			IP = self.IP
+			PORT = self.PORT
 
-		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP # nternet
-		self.sock.connect((IP, PORT)) ## connect to port and host
-		self.sock.sendto(MESSAGE,(IP, PORT)) ## send message to request data from server
-		#print "Sent Request. Awaiting Reply"
-		self.data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
-		#print "Got Reply"
-		#print self.data
-		
-		MESSAGE = self.MESSAGE2
-		IP = self.IP
-		PORT = self.PORT
+			self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP # nternet
+			self.sock.connect((IP, PORT)) ## connect to port and host
+			self.sock.sendto(MESSAGE,(IP, PORT)) ## send message to request data from server
+			#print "Sent Request. Awaiting Reply"
+			self.data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
+			#print "Got Reply"
+			#print self.data
+			
+			MESSAGE = self.MESSAGE2
+			IP = self.IP
+			PORT = self.PORT
 
-		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP # nternet
-		self.sock.connect((IP, PORT)) ## connect to port and host
-		self.sock.sendto(MESSAGE,(IP, PORT)) ## send message to request data from server
-		#print "Sent Request. Awaiting Reply"
-		data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
-		self.Xerr = int(data)
-		#print "Got Reply"
-		#print self.data
-		
-		MESSAGE = self.MESSAGE3
-		IP = self.IP
-		PORT = self.PORT
+			self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP # nternet
+			self.sock.connect((IP, PORT)) ## connect to port and host
+			self.sock.sendto(MESSAGE,(IP, PORT)) ## send message to request data from server
+			#print "Sent Request. Awaiting Reply"
+			data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
+			self.Xerr = int(data)
+			#print "Got Reply"
+			#print self.data
+			
+			MESSAGE = self.MESSAGE3
+			IP = self.IP
+			PORT = self.PORT
 
-		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP # nternet
-		self.sock.connect((IP, PORT)) ## connect to port and host
-		self.sock.sendto(MESSAGE,(IP, PORT)) ## send message to request data from server
-		#print "Sent Request. Awaiting Reply"
-		data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
-		self.Yerr = int(data)
-		#print "Got Reply"
-		#print self.data
+			self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP # nternet
+			self.sock.connect((IP, PORT)) ## connect to port and host
+			self.sock.sendto(MESSAGE,(IP, PORT)) ## send message to request data from server
+			#print "Sent Request. Awaiting Reply"
+			data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
+			self.Yerr = int(data)
+			#print "Got Reply"
+			#print self.data
+
+		self.sock.close()
+		print "Client Closed"
 
 	def requestData(self):
 		return self.data		
 
 	def disconnectClient(self):
-		#self.sock.close()
-		print "Client Closed"
+		self.runClient = False
+		
 
 	def getPort(self):
 		return self.PORT

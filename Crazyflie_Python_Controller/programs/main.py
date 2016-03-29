@@ -172,14 +172,15 @@ class FlightController:
 
     def _turnOffAllProcesses(self):
         self._udpClient.disconnectClient()
-		
-	def _detectObject(self):
-		xErr = self._udpClient.getXerr()
-		yErr = self._udpClient.getYerr()
-		
-		self.curr_thrust = self.curr_thrust - yErr
-		self.curr_roll = self.curr_roll + xErr/1000
-		print "Thrust = ", self.curr_thrust, " roll = ",self.curr_roll
+
+    def _detectObject(self):
+        xErr = (self._udpClient.getXerr())
+        xErr = float(float(xErr)/1000);
+        yErr = self._udpClient.getYerr()
+        self.current_thrust = self.current_thrust - yErr
+        self.current_roll = self.current_roll + xErr
+        print "Thrust = ", self.current_thrust, " roll = ",self.current_roll, " xerr = ", xErr
+        return 1;
   
         
     # auto pilot function
@@ -290,7 +291,7 @@ class FlightController:
                     print "Motors Now on"
 
             if altHold == True:
-				self._detectObject()
+				x = self._detectObject()
 				#arr = self.calNewThrust(targetAlt, targetX, targetY)
                 #self.current_thrust = arr[0]
                 #self.current_roll = arr[1]
