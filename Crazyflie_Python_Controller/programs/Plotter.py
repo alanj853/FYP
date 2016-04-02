@@ -15,10 +15,10 @@ class Plotter():
 			print "Plot object '", title, "' created"
 			self._plotData = True
 			self._closePlot = False
-			self.X1 = []
-			self.Y1 = []
-			self.Y2 = []
-			self.Y3 = []
+			self.X1 = [0]
+			self.Y1 = [0]
+			self.Y2 = [0]
+			self.Y3 = [0]
 			self.XMin1 = 0
 			self.XMax1 = 0
 			self.YMin1 = 0
@@ -35,11 +35,19 @@ class Plotter():
 			self.ax1 = self.fig.add_subplot(3,1,1)
 			self.ax2 = self.fig.add_subplot(3,1,2)
 			self.ax3 = self.fig.add_subplot(3,1,3)
-			self.ax1.set_title("Altitude")
-			self.ax2.set_title("Gyro X")
+			self.ax1.set_title("Error")
+			self.ax2.set_title("Increment")
 			self.ax3.set_title("Gyro Y")
+			if len(self.Y1) != len(self.X1):
+				self.ax1.plot(self.Y1)
+				print "using old"
+			else:
+				self.ax1.plot(self.X1,self.Y1)
+				print "using new"
+			self.ax2.plot(self.Y2)
+			self.ax3.plot(self.Y3)
 
-			ani = animation.FuncAnimation(self.fig, self.updatePlot, interval=100)
+			#ani = animation.FuncAnimation(self.fig, self.updatePlot, interval=100)
 
 	 		plt.show()
 
@@ -50,11 +58,19 @@ class Plotter():
 			self.ax2.plot(self.Y2)
 			self.ax3.plot(self.Y3)
 
-	def update(self, y1, y2, y3):
+	def updateY(self, y1, y2, y3):
 		if self.plotOn == True:
 			self.Y1 = y1
 			self.Y2 = y2
 			self.Y3 = y3
+
+			print "plotter updated leny = ", len(self.Y1)
+
+	def updateX(self, x1):
+		if self.plotOn == True:
+			self.X1 = x1
+
+			print "plotter updated lenx = ", len(self.X1)
 
 
 

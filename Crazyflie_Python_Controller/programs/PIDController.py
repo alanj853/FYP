@@ -1,8 +1,11 @@
+from __future__ import division
 #from PID import PID
 from threading import Thread
 from Plotter import Plotter
+
 import Tkinter
 import matplotlib 
+import time
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
@@ -15,6 +18,7 @@ class PIDController:
 		print "PID Controller Created. Name = ", self.name
 		name = "Plot for PID controller ", self.name
 		self._errorAccum = [0]
+		self._incAccum = [0]
 		self.xAxis = [0]
 		self.Kp = 0;
 		self.Ki = 0;
@@ -26,6 +30,9 @@ class PIDController:
 		self.count = 0
 		self.errorThreshold = 0.25
 		self.lastError = 0
+		self.percentageOvershoot = 0
+		self.settlingTime = 0;
+		self.controlTime = 0
 		
 
 	def _determineIncrement(self, target, current):
@@ -35,6 +42,8 @@ class PIDController:
 		if abs(error) < self.errorThreshold:
 			error = 0
 		self._errorAccum.append(error)
+		#self.percentageOvershoot = 100*((max(self._errorAccum) - error)/error)
+		self.settlingTime = 0
 		#print self.name, ": added ", error, " to list from ", target , " - ", current
 
 		#print self.name, " = {", self._errorAccum , "}"
@@ -59,11 +68,27 @@ class PIDController:
 		if inc < self.minIncr:
 			inc = self.minIncr
 
+		self._incAccum.append(inc)
 		return inc
 
 
 	def getLastError(self):
 		return self.lastError
+
+	def getXAxis(self):
+		length = len(self._errorAccum) - 1
+		t = self.getControlTime()
+		increment = t / length
+		arr = [len(self._errorAccum)]
+		s = 0
+		print "t = ", t, " inc = ", increment, " length = ", length
+		while s < (t - increment):
+		 	arr.append(s)
+		 	
+		print "len of arr", len(arr)
+		print "len of error = ", len(self._errorAccum) , " sum = ", s
+		self.xAxis = arr
+		return self.xAxis
 
 	def _determineProportional(self, error):
 		P = self.Kp*error
@@ -83,8 +108,21 @@ class PIDController:
 		#print "D = ", self.Kd, " * (", currentError , " - ", previousError, ") = ", D
 		return D; ## will return current slope
 
+	def reset(self):
+		self._errorAccum = [0]
+		self._incAccum = [0]
+		self.startTime = time.time()
+		#print "new len = ", len(self._errorAccum)
+
+	def getControlTime(self):
+		self.controlTime = time.time() - self.startTime
+		return self.controlTime
+
 	def getErrorAccum(self):
 		return self._errorAccum;
+
+	def getIncAccum(self):
+		return self._incAccum;
 
 	def getxAxis(self):
 		return self.xAxis;
@@ -94,6 +132,12 @@ class PIDController:
 
 	def getMinError(self):
 		return self.minError
+
+	def setMaxError(self, x):
+		self.maxError = x
+
+	def setMinError(self, x):
+		self.minError = x
 
 	def setPGain(self, x):
 		self.Kp = x
@@ -106,6 +150,9 @@ class PIDController:
 	def setDGain(self, x):
 		self.Kd = x
 		print "D Gain = ", self.Kd
+
+	def setErrorThreshold(self, x):
+		self.errorThreshold = x
 
 	def _makeGUI(self):
 		self.top = Tkinter.Tk()

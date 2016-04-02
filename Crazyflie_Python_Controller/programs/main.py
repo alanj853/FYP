@@ -35,7 +35,7 @@ class FlightController:
         #Initialize and run the example with the specified link_uri """
         self.is_connected = True
         self._cf = Crazyflie()
-        self.plotOn = False
+        self.plotOn = True
         self._cf.connected.add_callback(self._connected)
         self._cf.disconnected.add_callback(self._disconnected)
         self._cf.connection_failed.add_callback(self._connection_failed)
@@ -48,18 +48,22 @@ class FlightController:
         # initial logger, UDP client and PLotter
         self._logger = Logger(self._cf)
         self._udpClient = UDP_Client("127.0.0.1", 5000)
+        
         self.pidctrlr_alt = PIDController("Alt controller")
         self.pidctrlr_x = PIDController("Gyro.x controller")
         self.pidctrlr_y = PIDController("Gyro.y controller")
+
+        self.pidctrlr_t = PIDController("Thrust controller")
+        self.pidctrlr_r = PIDController("Roll controller")
 
         # add variables to log
         self._logger.logNewVar("baro.asl", "float")
         self._logger.logNewVar("gyro.x", "float")
         self._logger.logNewVar("gyro.y", "float")
 
-        self.pidctrlr_alt.setPGain(5)
-        self.pidctrlr_alt.setIGain(1)
-        self.pidctrlr_alt.setDGain(1)
+        self.pidctrlr_alt.setPGain(0)
+        self.pidctrlr_alt.setIGain(0)
+        self.pidctrlr_alt.setDGain(.01)
 
         self.pidctrlr_x.setPGain(5)
         self.pidctrlr_x.setIGain(1)
@@ -68,6 +72,16 @@ class FlightController:
         self.pidctrlr_y.setPGain(5)
         self.pidctrlr_y.setIGain(1)
         self.pidctrlr_y.setDGain(1)
+
+        self.pidctrlr_t.setPGain(.25) ## .25 works (sort of) with i = 0, d = 0
+        self.pidctrlr_t.setIGain(.0005) ## try 0006,0007, ... etc tomorrow
+        self.pidctrlr_t.setDGain(.000)
+        self.pidctrlr_t.setErrorThreshold(30)
+
+        self.pidctrlr_r.setPGain(.1)
+        self.pidctrlr_r.setIGain(.1)
+        self.pidctrlr_r.setDGain(.1)
+        self.pidctrlr_r.setMaxError(1)
 
         self.plotter1 = Plotter("Plot 1", self.plotOn)
 
@@ -88,10 +102,10 @@ class FlightController:
     def _connected(self, link_uri):
 
         Thread(target=self._motor_controller).start() # start the thread for controlling the motors
-        Thread(target=self._logger._begin_logging).start()
+        #Thread(target=self._logger._begin_logging).start()
         Thread(target=self._udpClient.run).start()
 
-        Thread(target=self.plotter1.plot).start()
+        #Thread(target=self.plotter1.plot).start()
 
         
         print "Connected to ", link_uri
@@ -174,12 +188,16 @@ class FlightController:
         self._udpClient.disconnectClient()
 
     def _detectObject(self):
-        xErr = (self._udpClient.getXerr())
-        xErr = float(float(xErr)/1000);
-        yErr = self._udpClient.getYerr()
-        self.current_thrust = self.current_thrust - yErr
-        self.current_roll = self.current_roll + xErr
-        print "Thrust = ", self.current_thrust, " roll = ",self.current_roll, " xerr = ", xErr
+        x = (self._udpClient.getXerr())
+        x = float(float(x)/1000);
+        y = self._udpClient.getYerr()
+
+        thrustFactor = self.pidctrlr_t._determineIncrement(239, y)
+        rollFactor = 0#self.pidctrlr_r._determineIncrement(319, x)
+
+        self.current_thrust = self.current_thrust + thrustFactor
+        self.current_roll = self.current_roll + rollFactor
+        print "Thrust = ", self.current_thrust, " roll = ",self.current_roll, " x = ", rollFactor, " y = ", thrustFactor
         return 1;
   
         
@@ -248,6 +266,14 @@ class FlightController:
     # function to set thrust, roll, pitch and yaw parameters on crazyflie    
     def _set_movement(self,roll, pitch, yaw, thrust):
         if self._motors_on == True:
+            if thrust > 60000:
+                print "Cannot set thrust greater than 60000."
+                thrust = 60000
+            elif thrust < 15000:
+                print "Cannot set thrust lower than 15000."
+                thrust = 15000
+            else:
+                thrust = thrust
             self._cf.commander.send_setpoint(roll, pitch, yaw, thrust)
 
 
@@ -265,8 +291,7 @@ class FlightController:
         char = ""
 
         while 1:
-            if self.current_thrust < 15000:
-                self.current_thrust = 15000
+            
             self._set_movement(self.current_roll, self.current_pitch, 0, self.current_thrust)
             
             char = self._getch()
@@ -276,10 +301,10 @@ class FlightController:
                 #self._cf.param.set_value('flightmode.althold', "True")
                 #self._auto_pilot(self.current_thrust, self.current_roll, self.current_pitch)
                 altHold = True
-                targetAlt = self._logger.retrieveVar("baro.asl")
-                targetX = self._logger.retrieveVar("gyro.x")
-                targetY = self._logger.retrieveVar("gyro.y")
-                
+                targetAlt = 0#self._logger.retrieveVar("baro.asl")
+                targetX = 0#self._logger.retrieveVar("gyro.x")
+                targetY = 0#self._logger.retrieveVar("gyro.y")
+                self.pidctrlr_t.reset()
                 print "Target Alt: ", targetAlt
                 
             if char == "p":
@@ -538,5 +563,10 @@ if __name__ == '__main__':
         # Close opened file
         fo.close()
         le.turn_off_UDP_client = True;
+        le.plotter1.updateY(le.pidctrlr_t.getErrorAccum(),le.pidctrlr_t.getIncAccum(),0)
+        #le.plotter1.updateX(le.pidctrlr_t.getXAxis())
+        le.plotter1.plot()
+        print "Time under AutoPilot = ", le.pidctrlr_t.getControlTime(), " seconds"
+        #le.pidctrlr_t.getXAxis()
     else:
         print "No Crazyflies found, cannot run example"
