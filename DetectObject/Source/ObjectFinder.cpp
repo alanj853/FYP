@@ -60,7 +60,8 @@ void ObjectFinder::trackObject(Object objToTrack, Mat threshold,
 					obj.setXPos(x);
 					obj.setYPos(y);
 
-					rectangle(cameraFeed,Point(x -50,y -50), Point(x + 50,y + 50),20);
+					//rectangle(cameraFeed,Point(x -50,y -50), Point(x + 50,y + 50),20);
+					rectangle(cameraFeed,Point(x -(MIN_OBJECT_LENGTH/2),y -(MIN_OBJECT_WIDTH/2)), Point(x + (MIN_OBJECT_LENGTH/2),y + (MIN_OBJECT_WIDTH/2)),20);
 
 					if (mode != 0)
 					{
@@ -130,4 +131,8 @@ string ObjectFinder::intToString(int number)
 	std::stringstream ss;
 	ss << number;
 	return ss.str();
+}
+
+void ObjectFinder::updateMAX_OBJECT_AREA(){
+	MIN_OBJECT_AREA = MIN_OBJECT_LENGTH*MIN_OBJECT_WIDTH;
 }

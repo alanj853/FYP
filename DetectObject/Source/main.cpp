@@ -50,6 +50,7 @@ string windowName3 = "Transformed Image (HSV)";
 void on_trackbar(int, void*)
 {
 	cout << "useSavedObject changed to " << useSavedObject << endl;
+	finder.updateMAX_OBJECT_AREA();
 
 }
 
@@ -330,6 +331,10 @@ void createTrackbars()
 	createTrackbar("MAX", trackbarWindowName, &MAX, MAX, on_trackbar);
 	createTrackbar("DETECT OBJECT", trackbarWindowName, &detectObject, 1,
 			on_trackbar);
+	createTrackbar("DETECT OBJECT Length", trackbarWindowName, &finder.MIN_OBJECT_LENGTH, 200,
+				on_trackbar);
+	createTrackbar("DETECT OBJECT Width", trackbarWindowName, &finder.MIN_OBJECT_WIDTH, 200,
+					on_trackbar);
 
 	createTrackbar("H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar);
 	createTrackbar("H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar);

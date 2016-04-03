@@ -25,14 +25,15 @@ class PIDController:
 		self.Kd = 0;
 		self.maxError = 0
 		self.minError = 0
-		self.maxIncr = 2500
-		self.minIncr = -1*self.maxIncr
+		self.maxInc = 2500
+		self.minInc = -1*self.maxInc
 		self.count = 0
 		self.errorThreshold = 0.25
 		self.lastError = 0
 		self.percentageOvershoot = 0
 		self.settlingTime = 0;
 		self.controlTime = 0
+		self.startTime = 0
 		
 
 	def _determineIncrement(self, target, current):
@@ -63,10 +64,10 @@ class PIDController:
 
 		inc = P + I + D
 
-		if inc > self.maxIncr:
-			inc = self.maxIncr
-		if inc < self.minIncr:
-			inc = self.minIncr
+		if inc > self.maxInc:
+			inc = self.maxInc
+		if inc < self.minInc:
+			inc = self.minInc
 
 		self._incAccum.append(inc)
 		return inc
@@ -115,7 +116,10 @@ class PIDController:
 		#print "new len = ", len(self._errorAccum)
 
 	def getControlTime(self):
-		self.controlTime = time.time() - self.startTime
+		if self.startTime == 0: ## if controller was never put into auto pilot
+			self.controlTime = 0
+		else:
+			self.controlTime = time.time() - self.startTime
 		return self.controlTime
 
 	def getErrorAccum(self):
@@ -132,6 +136,10 @@ class PIDController:
 
 	def getMinError(self):
 		return self.minError
+
+	def setMaxInc(self, x):
+		self.maxInc = x
+		self.minInc = -1*x
 
 	def setMaxError(self, x):
 		self.maxError = x

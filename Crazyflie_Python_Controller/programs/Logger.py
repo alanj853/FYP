@@ -78,7 +78,7 @@ class Logger:
 
     def retrieveVar(self, varName):
         ans = self._convert_data_to_number(self.cfData, varName)
-        print varName ," = ", ans
+        #print varName ," = ", ans
         return ans
 
     def retrieveVars(self, varNames):

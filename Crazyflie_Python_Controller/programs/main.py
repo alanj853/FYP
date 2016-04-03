@@ -58,12 +58,14 @@ class FlightController:
 
         # add variables to log
         self._logger.logNewVar("baro.asl", "float")
-        self._logger.logNewVar("gyro.x", "float")
-        self._logger.logNewVar("gyro.y", "float")
+        #self._logger.logNewVar("gyro.x", "float")
+        #self._logger.logNewVar("gyro.y", "float")
 
-        self.pidctrlr_alt.setPGain(0)
-        self.pidctrlr_alt.setIGain(0)
-        self.pidctrlr_alt.setDGain(.01)
+        self.pidctrlr_alt.setPGain(100)
+        self.pidctrlr_alt.setIGain(0.01)
+        self.pidctrlr_alt.setDGain(0)
+        self.pidctrlr_alt.setErrorThreshold(0.1)
+        self.pidctrlr_alt.setMaxInc(100)
 
         self.pidctrlr_x.setPGain(5)
         self.pidctrlr_x.setIGain(1)
@@ -73,15 +75,15 @@ class FlightController:
         self.pidctrlr_y.setIGain(1)
         self.pidctrlr_y.setDGain(1)
 
-        self.pidctrlr_t.setPGain(.25) ## .25 works (sort of) with i = 0, d = 0
-        self.pidctrlr_t.setIGain(.0005) ## try 0006,0007, ... etc tomorrow
+        self.pidctrlr_t.setPGain(.72) ## .25 works (sort of) with i = 0, d = 0
+        self.pidctrlr_t.setIGain(.000) ## try 0006,0007, ... etc tomorrow
         self.pidctrlr_t.setDGain(.000)
-        self.pidctrlr_t.setErrorThreshold(30)
+        self.pidctrlr_t.setErrorThreshold(10)
 
-        self.pidctrlr_r.setPGain(.1)
-        self.pidctrlr_r.setIGain(.1)
-        self.pidctrlr_r.setDGain(.1)
-        self.pidctrlr_r.setMaxError(1)
+        self.pidctrlr_r.setPGain(.001)
+        self.pidctrlr_r.setIGain(0)
+        self.pidctrlr_r.setDGain(0)
+        self.pidctrlr_r.setMaxInc(1)
 
         self.plotter1 = Plotter("Plot 1", self.plotOn)
 
@@ -102,8 +104,8 @@ class FlightController:
     def _connected(self, link_uri):
 
         Thread(target=self._motor_controller).start() # start the thread for controlling the motors
-        #Thread(target=self._logger._begin_logging).start()
-        Thread(target=self._udpClient.run).start()
+        Thread(target=self._logger._begin_logging).start()
+        #Thread(target=self._udpClient.run).start()
 
         #Thread(target=self.plotter1.plot).start()
 
@@ -116,16 +118,19 @@ class FlightController:
         at the speficied address)"""
         print "Connection to %s failed: %s" % (link_uri, msg)
         self.is_connected = False
+        #self._cf.close_link()
 
     def _connection_lost(self, link_uri, msg):
         """Callback when disconnected after a connection has been made (i.e
         Crazyflie moves out of range)"""
         print "Connection to %s lost: %s" % (link_uri, msg)
+        self._cf.close_link()
 
     def _disconnected(self, link_uri):
         """Callback when the Crazyflie is disconnected (called in all cases)"""
         print "Disconnected from %s" % link_uri
         self.is_connected = False
+        #self._cf.close_link()
 
 
     
@@ -147,41 +152,36 @@ class FlightController:
 
 
     def calNewThrust(self, targetAlt, targetX, targetY):
-        currAlt = self._logger.retrieveVar("baro.asl")
-        currX = self._logger.retrieveVar("gyro.x")
-        currY = self._logger.retrieveVar("gyro.y")
+        i = 0
+        arrT = []
+        currAlt = 0
+        while i < 10:
+            currAlt = self._logger.retrieveVar("baro.asl")
+            arrT.append(currAlt)
+            i = i + 1
+        currAlt = sum(arrT)/len(arrT) 
+        # currX = self._logger.retrieveVar("gyro.x")
+        # currY = self._logger.retrieveVar("gyro.y")
 
-        # print "currAlt = ", currAlt
+        print "currAlt = ", currAlt
         # print "currXaccel = ", currXaccel
         # print "currYaccel = ", currYaccel
 
         thrustFactor1 = self.pidctrlr_alt._determineIncrement(targetAlt, currAlt)
         t = self.pidctrlr_alt.getErrorAccum()
 
-        thrustFactor2 = self.pidctrlr_x._determineIncrement(targetX, currX)
-        x = self.pidctrlr_x.getErrorAccum()
+        # thrustFactor2 = self.pidctrlr_x._determineIncrement(targetX, currX)
+        # x = self.pidctrlr_x.getErrorAccum()
 
-        thrustFactor3 = self.pidctrlr_y._determineIncrement(targetY, currY)
-        y = self.pidctrlr_y.getErrorAccum()
+        # thrustFactor3 = self.pidctrlr_y._determineIncrement(targetY, currY)
+        # y = self.pidctrlr_y.getErrorAccum()
 
-        self.plotter1.update(t, x, y)
-
-        thrust = self.current_thrust
-        roll = self.current_roll
-        pitch = self.current_pitch
-
-        thrust = thrust + thrustFactor1 
-        roll = roll + thrustFactor2
-        pitch = pitch + thrustFactor3
+        self.current_thrust = self.current_thrust + thrustFactor1 
+        self.current_roll = self.current_roll + 0#thrustFactor2
+        self.current_pitch = self.current_pitch + 0#thrustFactor3
         
-        print "thrust is now: ", thrust, " Roll is now: ", roll, " Pitch is now: ", pitch
+        print "thrust is now: ", self.current_thrust, " Roll is now: ", self.current_roll, " Pitch is now: ", self.current_pitch
 
-        factorList = []
-        factorList.append(thrust)
-        factorList.append(roll)
-        factorList.append(pitch)
-
-        return factorList
 
 
     def _turnOffAllProcesses(self):
@@ -194,6 +194,10 @@ class FlightController:
 
         thrustFactor = self.pidctrlr_t._determineIncrement(239, y)
         rollFactor = 0#self.pidctrlr_r._determineIncrement(319, x)
+        gravityFactor = 1#0.2297*2
+
+        if thrustFactor < 0:
+            thrustFactor = thrustFactor*gravityFactor
 
         self.current_thrust = self.current_thrust + thrustFactor
         self.current_roll = self.current_roll + rollFactor
@@ -301,10 +305,11 @@ class FlightController:
                 #self._cf.param.set_value('flightmode.althold', "True")
                 #self._auto_pilot(self.current_thrust, self.current_roll, self.current_pitch)
                 altHold = True
-                targetAlt = 0#self._logger.retrieveVar("baro.asl")
+                targetAlt = self._logger.retrieveVar("baro.asl")
                 targetX = 0#self._logger.retrieveVar("gyro.x")
                 targetY = 0#self._logger.retrieveVar("gyro.y")
                 self.pidctrlr_t.reset()
+                self.pidctrlr_alt.reset()
                 print "Target Alt: ", targetAlt
                 
             if char == "p":
@@ -316,12 +321,8 @@ class FlightController:
                     print "Motors Now on"
 
             if altHold == True:
-				x = self._detectObject()
-				#arr = self.calNewThrust(targetAlt, targetX, targetY)
-                #self.current_thrust = arr[0]
-                #self.current_roll = arr[1]
-                #self.current_pitch = arr[2]
-				#
+				#x = self._detectObject()
+				self.calNewThrust(targetAlt, targetX, targetY)
 
 
 
@@ -546,7 +547,13 @@ if __name__ == '__main__':
         except IndexError: 
             print "Motors are enabled"
         while le.is_connected:
-            time.sleep(1)
+            try:
+                time.sleep(1)
+            except (TypeError, IndexError, ZeroDivisionError, IOError, NameError):
+                le._turnOffAllProcesses()
+                le._cf.close_link()
+                le.is_connected = False
+                print "Caught type Error" 
         print "Done"
         stop_time = time.time()
         print "Total Flight Time: ", int(stop_time - le.start_time), " seconds"
@@ -563,10 +570,9 @@ if __name__ == '__main__':
         # Close opened file
         fo.close()
         le.turn_off_UDP_client = True;
-        le.plotter1.updateY(le.pidctrlr_t.getErrorAccum(),le.pidctrlr_t.getIncAccum(),0)
-        #le.plotter1.updateX(le.pidctrlr_t.getXAxis())
+        le.plotter1.updateY(le.pidctrlr_alt.getErrorAccum(),le.pidctrlr_alt.getIncAccum(),0)
+        print "Time under AutoPilot = ", le.pidctrlr_alt.getControlTime(), " seconds"
         le.plotter1.plot()
-        print "Time under AutoPilot = ", le.pidctrlr_t.getControlTime(), " seconds"
-        #le.pidctrlr_t.getXAxis()
+        
     else:
         print "No Crazyflies found, cannot run example"
