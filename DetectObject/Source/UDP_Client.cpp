@@ -15,7 +15,6 @@
 #include <ws2tcpip.h>
 #include <stdio.h>
 
-
 UDP_Client::UDP_Client(const char* host, const char* port_no) {
 	port = port_no;
 	hostname = host;
@@ -70,9 +69,7 @@ int UDP_Client::run(int best_matrix_pos) {
 		exit(1);
 	}
 
-
-
-	string best_matrix = "<x=" + int_to_string(best_matrix_pos) + ";>" ;
+	string best_matrix = "<x=" + int_to_string(best_matrix_pos) + ";>";
 	string header = "<CPP:Client>";
 
 	string message = header + best_matrix;
@@ -90,13 +87,21 @@ int UDP_Client::run(int best_matrix_pos) {
 }
 
 int UDP_Client::print_out(int x) {
-	cout << "This is bestMatrix: " << x <<endl;
+	cout << "This is bestMatrix: " << x << endl;
 	return 0;
 }
 
 string UDP_Client::int_to_string(int i) {
 	stringstream strs;
 	strs << i;
+	string string = strs.str();
+	return string;
+}
+
+string UDP_Client::double_to_string(double d) {
+	cout << "Value in = " << d << endl;
+	stringstream strs;
+	strs << d;
 	string string = strs.str();
 	return string;
 }
@@ -117,194 +122,153 @@ string UDP_Client::get_hostname() {
 	return hostname;
 }
 
-void UDP_Client::close_socket(){
+void UDP_Client::close_socket() {
 	closesocket(sock);
-	    WSACleanup();
+	WSACleanup();
 }
 
-int UDP_Client::create_new_socket(int best_matrix_pos){
+int UDP_Client::create_new_socket(int best_matrix_pos) {
 
 	int BUFLEN = 512;
 	unsigned short int PORT = 5000;
 	const char* SERVER = "127.0.0.1";
 
+	struct sockaddr_in si_other;
+	int s, slen = sizeof(si_other);
+	char buf[BUFLEN];
+	//char message[BUFLEN];
+	WSADATA wsa;
 
-	 struct sockaddr_in si_other;
-	    int s, slen=sizeof(si_other);
-	    char buf[BUFLEN];
-	    //char message[BUFLEN];
-	    WSADATA wsa;
+	//Initialise winsock
+	printf("\nInitialising Winsock...");
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+		printf("Failed. Error Code : %d", WSAGetLastError());
+		exit(EXIT_FAILURE);
+	}
+	printf("Initialised.\n");
 
-	    //Initialise winsock
-	    printf("\nInitialising Winsock...");
-	    if (WSAStartup(MAKEWORD(2,2),&wsa) != 0)
-	    {
-	        printf("Failed. Error Code : %d",WSAGetLastError());
-	        exit(EXIT_FAILURE);
-	    }
-	    printf("Initialised.\n");
+	//create socket
+	if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == SOCKET_ERROR) {
+		printf("socket() failed with error code : %d", WSAGetLastError());
+		exit(EXIT_FAILURE);
+	}
 
-	    //create socket
-	    if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == SOCKET_ERROR)
-	    {
-	        printf("socket() failed with error code : %d" , WSAGetLastError());
-	        exit(EXIT_FAILURE);
-	    }
+	//setup address structure
+	memset((char *) &si_other, 0, sizeof(si_other));
+	si_other.sin_family = AF_INET;
+	si_other.sin_port = htons(PORT);
+	si_other.sin_addr.S_un.S_addr = inet_addr(SERVER);
 
-	    //setup address structure
-	    memset((char *) &si_other, 0, sizeof(si_other));
-	    si_other.sin_family = AF_INET;
-	    si_other.sin_port = htons(PORT);
-	    si_other.sin_addr.S_un.S_addr = inet_addr(SERVER);
+	string best_matrix = "<x=" + int_to_string(best_matrix_pos) + ";>";
+	string header = "<CPP:Client>";
 
+	string subHeader = "<DetectWhiteSpace>";
 
-	    string best_matrix = "<x=" + int_to_string(best_matrix_pos) + ";>" ;
-	    	string header = "<CPP:Client>";
+	string message = header + subHeader + best_matrix;
+	cout << "Sending " << message << endl;
+	const char* msg = message.c_str();
 
-	    	string subHeader = "<DetectWhiteSpace>";
+	//start communication
+	//while(1)
+	{
 
-	    	string message = header + subHeader +  best_matrix;
-	    	cout << "Sending " << message << endl;
-	    	const char* msg = message.c_str();
+		//send the message
+		if (sendto(s, msg, strlen(msg), 0, (struct sockaddr *) &si_other,
+				slen) == SOCKET_ERROR) {
+			printf("sendto() failed with error code : %d", WSAGetLastError());
+			exit(EXIT_FAILURE);
+		}
 
-	    //start communication
-	    //while(1)
-	    {
+		//receive a reply and print it
+		//clear the buffer by filling null, it might have previously received data
+		/* memset(buf,'\0', BUFLEN);
+		 //try to receive some data, this is a blocking call
+		 if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == SOCKET_ERROR)
+		 {
+		 printf("recvfrom() failed with error code : %d" , WSAGetLastError());
+		 exit(EXIT_FAILURE);
+		 }
 
-	        //send the message
-	        if (sendto(s, msg, strlen(msg) , 0 , (struct sockaddr *) &si_other, slen) == SOCKET_ERROR)
-	        {
-	            printf("sendto() failed with error code : %d" , WSAGetLastError());
-	            exit(EXIT_FAILURE);
-	        }
+		 puts(buf);*/
+	}
 
-	        //receive a reply and print it
-	        //clear the buffer by filling null, it might have previously received data
-	       /* memset(buf,'\0', BUFLEN);
-	        //try to receive some data, this is a blocking call
-	        if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == SOCKET_ERROR)
-	        {
-	            printf("recvfrom() failed with error code : %d" , WSAGetLastError());
-	            exit(EXIT_FAILURE);
-	        }
+	closesocket(s);
+	WSACleanup();
 
-	        puts(buf);*/
-	    }
-
-	    closesocket(s);
-	    WSACleanup();
-
-	    return 0;
+	return 0;
 }
 
-
-int UDP_Client::create_new_socket(int x, int y){
+int UDP_Client::create_new_socket(int x, int y, double area) {
 
 	int BUFLEN = 512;
 	unsigned short int PORT = 5000;
 	const char* SERVER = "127.0.0.1";
 
+	struct sockaddr_in si_other;
+	int s, slen = sizeof(si_other);
+	char buf[BUFLEN];
+	//char message[BUFLEN];
+	WSADATA wsa;
 
-	 struct sockaddr_in si_other;
-	    int s, slen=sizeof(si_other);
-	    char buf[BUFLEN];
-	    //char message[BUFLEN];
-	    WSADATA wsa;
+	//Initialise winsock
+	printf("\nInitialising Winsock...");
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+		printf("Failed. Error Code : %d", WSAGetLastError());
+		exit(EXIT_FAILURE);
+	}
+	printf("Initialised.\n");
 
-	    //Initialise winsock
-	    printf("\nInitialising Winsock...");
-	    if (WSAStartup(MAKEWORD(2,2),&wsa) != 0)
-	    {
-	        printf("Failed. Error Code : %d",WSAGetLastError());
-	        exit(EXIT_FAILURE);
-	    }
-	    printf("Initialised.\n");
+	//create socket
+	if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == SOCKET_ERROR) {
+		printf("socket() failed with error code : %d", WSAGetLastError());
+		exit(EXIT_FAILURE);
+	}
 
-	    //create socket
-	    if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == SOCKET_ERROR)
-	    {
-	        printf("socket() failed with error code : %d" , WSAGetLastError());
-	        exit(EXIT_FAILURE);
-	    }
+	//setup address structure
+	memset((char *) &si_other, 0, sizeof(si_other));
+	si_other.sin_family = AF_INET;
+	si_other.sin_port = htons(PORT);
+	si_other.sin_addr.S_un.S_addr = inet_addr(SERVER);
 
-	    //setup address structure
-	    memset((char *) &si_other, 0, sizeof(si_other));
-	    si_other.sin_family = AF_INET;
-	    si_other.sin_port = htons(PORT);
-	    si_other.sin_addr.S_un.S_addr = inet_addr(SERVER);
+	int xErr = x;	        //- 319;
+	int yErr = y;	        // - 239;
 
+	string best_matrix = "<x=" + int_to_string(xErr) + ";y="
+			+ int_to_string(yErr) + ";a=" + double_to_string(area) + ";>";
+	string header = "<CPP:Client>";
+	string subHeader = "<DetectObject>";
 
-	    int xErr = x;//- 319;
-	    int yErr = y;// - 239;
+	string message = header + subHeader + best_matrix;
+	cout << "Sending " << message << endl;
+	const char* msg = message.c_str();
 
-	    string best_matrix = "<x=" + int_to_string(xErr) + ";y=" + int_to_string(yErr) + ";>" ;
-	    	string header = "<CPP:Client>";
-	    	string subHeader = "<DetectObject>";
+	//start communication
+	//while(1)
+	{
 
-	    	string message = header + subHeader +  best_matrix;
-	    	cout << "Sending " << message << endl;
-	    	const char* msg = message.c_str();
+		//send the message
+		if (sendto(s, msg, strlen(msg), 0, (struct sockaddr *) &si_other,
+				slen) == SOCKET_ERROR) {
+			printf("sendto() failed with error code : %d", WSAGetLastError());
+			exit(EXIT_FAILURE);
+		}
 
-	    //start communication
-	    //while(1)
-	    {
+		//receive a reply and print it
+		//clear the buffer by filling null, it might have previously received data
+		/* memset(buf,'\0', BUFLEN);
+		 //try to receive some data, this is a blocking call
+		 if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == SOCKET_ERROR)
+		 {
+		 printf("recvfrom() failed with error code : %d" , WSAGetLastError());
+		 exit(EXIT_FAILURE);
+		 }
 
-	        //send the message
-	        if (sendto(s, msg, strlen(msg) , 0 , (struct sockaddr *) &si_other, slen) == SOCKET_ERROR)
-	        {
-	            printf("sendto() failed with error code : %d" , WSAGetLastError());
-	            exit(EXIT_FAILURE);
-	        }
+		 puts(buf);*/
+	}
 
-	        //receive a reply and print it
-	        //clear the buffer by filling null, it might have previously received data
-	       /* memset(buf,'\0', BUFLEN);
-	        //try to receive some data, this is a blocking call
-	        if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == SOCKET_ERROR)
-	        {
-	            printf("recvfrom() failed with error code : %d" , WSAGetLastError());
-	            exit(EXIT_FAILURE);
-	        }
+	closesocket(s);
+	WSACleanup();
 
-	        puts(buf);*/
-	    }
-
-	    closesocket(s);
-	    WSACleanup();
-
-	    return 0;
+	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

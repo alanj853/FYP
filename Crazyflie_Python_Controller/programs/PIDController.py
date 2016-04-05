@@ -43,20 +43,7 @@ class PIDController:
 		if abs(error) < self.errorThreshold:
 			error = 0
 		self._errorAccum.append(error)
-		#self.percentageOvershoot = 100*((max(self._errorAccum) - error)/error)
-		self.settlingTime = 0
-		#print self.name, ": added ", error, " to list from ", target , " - ", current
-
-		#print self.name, " = {", self._errorAccum , "}"
-
-		# self.plot1.Y1 = self._errorAccum
-		# self.plot1.XMin1 = 0
-		# self.plot1.XMax1 = self.count
-		# self.plot1.X1.append(self.count)
-		# self.plot1.YMax1 = max(self._errorAccum)
-		# self.plot1.YMin1 = min(self._errorAccum)
-		# self.count = self.count + 1
-
+		
 		P = self._determineProportional(error)
 		I = self._determineIntegral(self._errorAccum)
 		D = self._determineDerivative(self._errorAccum)
@@ -105,7 +92,11 @@ class PIDController:
 		l = len(_errorAccum)
 		currentError = _errorAccum[l-1]
 		previousError = _errorAccum[l-2]
-		D = self.Kd*(currentError - previousError)
+		if currentError > 1:
+			D = 1*self.Kd*(currentError - previousError)
+			#D = 2*self.Kd*(currentError - previousError)
+		else:
+			D = 1*self.Kd*(currentError - previousError)
 		#print "D = ", self.Kd, " * (", currentError , " - ", previousError, ") = ", D
 		return D; ## will return current slope
 

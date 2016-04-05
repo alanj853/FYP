@@ -60,12 +60,15 @@ class FlightController:
         self._logger.logNewVar("baro.asl", "float")
         #self._logger.logNewVar("gyro.x", "float")
         #self._logger.logNewVar("gyro.y", "float")
-
-        self.pidctrlr_alt.setPGain(100)
-        self.pidctrlr_alt.setIGain(0.01)
-        self.pidctrlr_alt.setDGain(0)
+        self._logger.logNewVar("pm.vbat", "float")
+        self.pidctrlr_alt.setPGain(50)
+        self.pidctrlr_alt.setIGain(0.008)# 032
+        self.pidctrlr_alt.setDGain(320)
+        # self.pidctrlr_alt.setPGain(.007031*100)
+        # self.pidctrlr_alt.setIGain(0.0157*100)
+        # self.pidctrlr_alt.setDGain(0.0006971*100)
         self.pidctrlr_alt.setErrorThreshold(0.1)
-        self.pidctrlr_alt.setMaxInc(100)
+        self.pidctrlr_alt.setMaxInc(1000)
 
         self.pidctrlr_x.setPGain(5)
         self.pidctrlr_x.setIGain(1)
@@ -75,9 +78,9 @@ class FlightController:
         self.pidctrlr_y.setIGain(1)
         self.pidctrlr_y.setDGain(1)
 
-        self.pidctrlr_t.setPGain(.72) ## .25 works (sort of) with i = 0, d = 0
-        self.pidctrlr_t.setIGain(.000) ## try 0006,0007, ... etc tomorrow
-        self.pidctrlr_t.setDGain(.000)
+        self.pidctrlr_t.setPGain(.5) ## .25 works (sort of) with i = 0, d = 0
+        self.pidctrlr_t.setIGain(.0001) ## try 0006,0007, ... etc tomorrow
+        self.pidctrlr_t.setDGain(1.4)
         self.pidctrlr_t.setErrorThreshold(10)
 
         self.pidctrlr_r.setPGain(.001)
@@ -86,6 +89,9 @@ class FlightController:
         self.pidctrlr_r.setMaxInc(1)
 
         self.plotter1 = Plotter("Plot 1", self.plotOn)
+        self.plotter1.ax3.set_title('Y Position')
+        self.batteryReadings = []
+        self.yPositionReadings = []
 
         self.best_matrix = "Not Assigned" ## the sub frame with the most free space -- see documentation
         self.turn_off_UDP_client = False;
@@ -105,7 +111,7 @@ class FlightController:
 
         Thread(target=self._motor_controller).start() # start the thread for controlling the motors
         Thread(target=self._logger._begin_logging).start()
-        #Thread(target=self._udpClient.run).start()
+        Thread(target=self._udpClient.run).start()
 
         #Thread(target=self.plotter1.plot).start()
 
@@ -168,6 +174,17 @@ class FlightController:
         # print "currYaccel = ", currYaccel
 
         thrustFactor1 = self.pidctrlr_alt._determineIncrement(targetAlt, currAlt)
+        gravityFactor = 0.2297*2
+        batteryValue = self._logger.retrieveVar("pm.vbat")
+        self.batteryReadings.append(batteryValue)
+        if batteryValue < 4.2:
+            batteryFactor = (batteryValue - 3.7)*100
+        else:
+            batteryFactor = 0
+        
+
+        if thrustFactor1 < 0:
+            thrustFactor1 = thrustFactor1*gravityFactor
         t = self.pidctrlr_alt.getErrorAccum()
 
         # thrustFactor2 = self.pidctrlr_x._determineIncrement(targetX, currX)
@@ -176,7 +193,7 @@ class FlightController:
         # thrustFactor3 = self.pidctrlr_y._determineIncrement(targetY, currY)
         # y = self.pidctrlr_y.getErrorAccum()
 
-        self.current_thrust = self.current_thrust + thrustFactor1 
+        self.current_thrust = self.current_thrust + thrustFactor1 + batteryFactor
         self.current_roll = self.current_roll + 0#thrustFactor2
         self.current_pitch = self.current_pitch + 0#thrustFactor3
         
@@ -191,13 +208,22 @@ class FlightController:
         x = (self._udpClient.getXerr())
         x = float(float(x)/1000);
         y = self._udpClient.getYerr()
+        self.yPositionReadings.append(y)
 
         thrustFactor = self.pidctrlr_t._determineIncrement(239, y)
         rollFactor = 0#self.pidctrlr_r._determineIncrement(319, x)
         gravityFactor = 1#0.2297*2
 
-        if thrustFactor < 0:
-            thrustFactor = thrustFactor*gravityFactor
+        batteryValue = self._logger.retrieveVar("pm.vbat")
+        self.batteryReadings.append(batteryValue)
+        if batteryValue < 4.2:
+            batteryFactor = (batteryValue - 3.7)*100
+        else:
+            batteryFactor = 0
+        
+
+        # if thrustFactor < 0:
+        #     thrustFactor = thrustFactor*gravityFactor
 
         self.current_thrust = self.current_thrust + thrustFactor
         self.current_roll = self.current_roll + rollFactor
@@ -206,65 +232,45 @@ class FlightController:
   
         
     # auto pilot function
-    def _auto_pilot(self, curr_thrust, curr_roll, curr_pitch):
-        char = self._getch(); # get the character that was pressed by the user
-        thrust = curr_thrust;
-        roll = curr_roll;
-        pitch = curr_pitch;
+    def _auto_pilot(self):
+        best_matrix = self._udpClient.bestMatrix
+        if self.best_matrix == '0':
+            pitch = pitch - .5 # reverse if not clear space
+            print "reverse"
+        elif self.best_matrix == '1':
+            thrust = thrust + 50
+            roll = roll - .5
+            print "Increase Thrust and Roll Left"
+        elif self.best_matrix == '2':
+            thrust = thrust + 50
+            print "Increase Thrust"
+        elif self.best_matrix == '3':
+            thrust = thrust + 50
+            roll = roll + .5
+            print "Increase Thrust and Roll Right"
+        elif self.best_matrix == '4':
+            roll = roll - .5
+            print "Roll Left"
+        elif self.best_matrix == '6':
+            roll = roll + .5
+            print "Roll Right"
+        elif self.best_matrix == '7':
+            thrust = thrust - 50
+            roll = roll - .5
+            print "Decrease Thrust and Roll Left"
+        elif self.best_matrix == '8':
+            thrust = thrust - 50
+            print "Decrease Thrust"
+        elif self.best_matrix == '9':
+            thrust = thrust - 50
+            roll = roll + .5
+            print "Decrease Thrust and Roll Right"
+        else:
+            print "maintain thrust and roll" #self.best_matrix == 5, where we just maintain current position
 
-        while char != "j" and char != "o":
-
-            if self.best_matrix == '0':
-                pitch = pitch - .5 # reverse if not clear space
-                print "reverse"
-            elif self.best_matrix == '1':
-                thrust = thrust + 50
-                roll = roll - .5
-                print "Increase Thrust and Roll Left"
-            elif self.best_matrix == '2':
-                thrust = thrust + 50
-                print "Increase Thrust"
-            elif self.best_matrix == '3':
-                thrust = thrust + 50
-                roll = roll + .5
-                print "Increase Thrust and Roll Right"
-            elif self.best_matrix == '4':
-                roll = roll - .5
-                print "Roll Left"
-            elif self.best_matrix == '6':
-                roll = roll + .5
-                print "Roll Right"
-            elif self.best_matrix == '7':
-                thrust = thrust - 50
-                roll = roll - .5
-                print "Decrease Thrust and Roll Left"
-            elif self.best_matrix == '8':
-                thrust = thrust - 50
-                print "Decrease Thrust"
-            elif self.best_matrix == '9':
-                thrust = thrust - 50
-                roll = roll + .5
-                print "Decrease Thrust and Roll Right"
-            ## Still maintain manual Yaw Control (for now)     
-            elif char == "a":
-                print "turning left"
-                self._set_movement(roll, pitch, -50, thrust)
-                time.sleep(.25)
-                self._set_movement(roll, pitch, 0, thrust)
-            elif char == "d":
-                print "turning right"
-                self._set_movement(roll, pitch, 50, thrust)
-                time.sleep(.25)
-                self._set_movement(roll, pitch, 0, thrust)
-            else:
-                print "maintain thrust and roll" #self.best_matrix == 5, where we just maintain current position
-
-
-            self._set_movement(roll, pitch, 0, thrust); ## set the new parameters
-            print "Thrust = ", thrust, " Roll = ",roll, " pitch = ", pitch
-            time.sleep(.1)
-            char = self._getch();
-        print "Done AutoPilot"
+        self.current_thrust = thrust
+        self.current_roll = roll
+        self.current_pitch = pitch
 
 
     # function to set thrust, roll, pitch and yaw parameters on crazyflie    
@@ -305,9 +311,9 @@ class FlightController:
                 #self._cf.param.set_value('flightmode.althold', "True")
                 #self._auto_pilot(self.current_thrust, self.current_roll, self.current_pitch)
                 altHold = True
-                targetAlt = self._logger.retrieveVar("baro.asl")
-                targetX = 0#self._logger.retrieveVar("gyro.x")
-                targetY = 0#self._logger.retrieveVar("gyro.y")
+                #targetAlt = self._logger.retrieveVar("baro.asl")
+                #targetX = 0#self._logger.retrieveVar("gyro.x")
+                #targetY = 0#self._logger.retrieveVar("gyro.y")
                 self.pidctrlr_t.reset()
                 self.pidctrlr_alt.reset()
                 print "Target Alt: ", targetAlt
@@ -321,8 +327,8 @@ class FlightController:
                     print "Motors Now on"
 
             if altHold == True:
-				#x = self._detectObject()
-				self.calNewThrust(targetAlt, targetX, targetY)
+				x = self._detectObject()
+				#self.calNewThrust(targetAlt, targetX, targetY)
 
 
 
@@ -570,9 +576,14 @@ if __name__ == '__main__':
         # Close opened file
         fo.close()
         le.turn_off_UDP_client = True;
-        le.plotter1.updateY(le.pidctrlr_alt.getErrorAccum(),le.pidctrlr_alt.getIncAccum(),0)
-        print "Time under AutoPilot = ", le.pidctrlr_alt.getControlTime(), " seconds"
+        le.plotter1.updateY(le.pidctrlr_t.getErrorAccum(),le.pidctrlr_t.getIncAccum(),le.yPositionReadings, le.batteryReadings)
+        print "Time under AutoPilot = ", le.pidctrlr_t.getControlTime(), " seconds"
         le.plotter1.plot()
+        errorFile = open("error.txt", "wb")
+        for data in le.pidctrlr_t.getErrorAccum():
+            string = str(data) + ","
+            errorFile.write(string)
+        errorFile.close()
         
     else:
         print "No Crazyflies found, cannot run example"

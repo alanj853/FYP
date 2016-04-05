@@ -19,33 +19,34 @@ class Plotter():
 			self.Y1 = [0]
 			self.Y2 = [0]
 			self.Y3 = [0]
+			self.Y4 = [0]
+			self.Y5 = [0]
 			self.XMin1 = 0
 			self.XMax1 = 0
 			self.YMin1 = 0
 			self.YMax1 = 0
 			self.YLabel1 = ""
 			self.XLabel1 = ""
+			self.fig = plt.figure()
+			self.ax1 = self.fig.add_subplot(5,1,1)
+			self.ax2 = self.fig.add_subplot(5,1,2)
+			self.ax3 = self.fig.add_subplot(5,1,3)
+			self.ax4 = self.fig.add_subplot(5,1,4)
+			self.ax5 = self.fig.add_subplot(5,1,5)
+			self.ax1.set_title("Error")
+			self.ax2.set_title("Thrust Increment")
+			self.ax4.set_title("Battery")
 		else:
 			print "Plot is Off"
 
 	def plot(self):
 		#plt.ion()
 		if self.plotOn == True:
-			self.fig = plt.figure()
-			self.ax1 = self.fig.add_subplot(3,1,1)
-			self.ax2 = self.fig.add_subplot(3,1,2)
-			self.ax3 = self.fig.add_subplot(3,1,3)
-			self.ax1.set_title("Error")
-			self.ax2.set_title("Increment")
-			self.ax3.set_title("Gyro Y")
-			if len(self.Y1) != len(self.X1):
-				self.ax1.plot(self.Y1)
-				print "using old"
-			else:
-				self.ax1.plot(self.X1,self.Y1)
-				print "using new"
+			self.ax1.plot(self.Y1)
 			self.ax2.plot(self.Y2)
 			self.ax3.plot(self.Y3)
+			self.ax4.plot(self.Y4)
+			self.ax5.plot(self.Y5)
 
 			#ani = animation.FuncAnimation(self.fig, self.updatePlot, interval=100)
 
@@ -57,12 +58,15 @@ class Plotter():
 			self.ax1.plot(self.Y1)
 			self.ax2.plot(self.Y2)
 			self.ax3.plot(self.Y3)
+			self.ax4.plot(self.Y4)
 
-	def updateY(self, y1, y2, y3):
+	def updateY(self, y1, y2, y3, y4, y5):
 		if self.plotOn == True:
 			self.Y1 = y1
 			self.Y2 = y2
 			self.Y3 = y3
+			self.Y4 = y4
+			self.Y5 = y5
 
 			print "plotter updated leny = ", len(self.Y1)
 

@@ -13,9 +13,11 @@ class UDP_Client:
 		self.MESSAGE1 = "CF:Client-Request_DetectWhiteSpace"
 		self.MESSAGE2 = "CF:Client-Request_DetectObject_Xerr"
 		self.MESSAGE3 = "CF:Client-Request_DetectObject_Yerr"
-		self.data = "no data"
+		self.MESSAGE4 = "CF:Client-Request_DetectObject_ObjectArea"
+		self.bestMatrix = "no data"
 		self.Yerr = 0
 		self.Xerr = 0
+		self.ObjectArea = 0
 		self.runClient = True
 
 	def run(self):
@@ -31,6 +33,7 @@ class UDP_Client:
 			self.sock.sendto(MESSAGE,(IP, PORT)) ## send message to request data from server
 			#print "Sent Request. Awaiting Reply"
 			self.data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
+			self.bestMatrix = self.data
 			#print "Got Reply"
 			#print self.data
 			
@@ -57,6 +60,19 @@ class UDP_Client:
 			#print "Sent Request. Awaiting Reply"
 			data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
 			self.Yerr = int(data)
+			#print "Got Reply"
+			#print self.data
+
+			MESSAGE = self.MESSAGE4
+			IP = self.IP
+			PORT = self.PORT
+
+			self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP # nternet
+			self.sock.connect((IP, PORT)) ## connect to port and host
+			self.sock.sendto(MESSAGE,(IP, PORT)) ## send message to request data from server
+			#print "Sent Request. Awaiting Reply"
+			data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
+			self.ObjectArea = float(data)
 			#print "Got Reply"
 			#print self.data
 
@@ -87,3 +103,9 @@ class UDP_Client:
 		
 	def getYerr(self):
 		return self.Yerr
+
+	def getObjectArea(self):
+		return self.ObjectArea
+
+	def getBestMatrix(self):
+		return self.bestMatrix

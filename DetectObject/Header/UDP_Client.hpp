@@ -24,12 +24,13 @@ public:
 	int resolvehelper(const char* hostname, int family, const char* service,
 			sockaddr_storage* pAddr);
 	string int_to_string(int i);
+	string double_to_string(double d);
 	void set_hostname(const char* h);
 	void set_port(const char* p);
 	string get_hostname();
 	string get_port();
 	int create_new_socket(int x);
-	int create_new_socket(int x, int y);
+	int create_new_socket(int x, int y, double area);
 	void close_socket();
 
 private:

@@ -1,0 +1,123 @@
+00:06:41 **** Incremental Build of configuration Debug for project DetectObject ****
+Info: Configuration "Debug" uses tool-chain "MinGW GCC" that is unsupported on this system, attempting to build anyway.
+Info: Internal Builder is used for build
+g++ -std=c++11 "-IC:\\opencv\\build\\include" "-IC:\\Users\\Alan\\Documents\\GitHub\\FYP\\DetectObject\\Header" -O0 -g3 -Wall -c -fmessage-length=0 -o "Source\\UDP_Client.o" "..\\Source\\UDP_Client.cpp" 
+..\Source\UDP_Client.cpp: In member function 'int UDP_Client::run(int)':
+..\Source\UDP_Client.cpp:52:7: warning: unused variable 'szIP' [-Wunused-variable]
+  char szIP[100];
+       ^
+..\Source\UDP_Client.cpp: In member function 'int UDP_Client::create_new_socket(int)':
+..\Source\UDP_Client.cpp:142:11: warning: unused variable 'buf' [-Wunused-variable]
+      char buf[BUFLEN];
+           ^
+..\Source\UDP_Client.cpp: In member function 'int UDP_Client::create_new_socket(int, int, double)':
+..\Source\UDP_Client.cpp:218:11: warning: unused variable 'buf' [-Wunused-variable]
+      char buf[BUFLEN];
+           ^
+..\Source\UDP_Client.cpp: In member function 'int UDP_Client::run(int)':
+..\Source\UDP_Client.cpp:90:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+g++ "-LC:\\opencv\\sources\\eclipse_release\\lib" -o DetectObject.exe "Source\\Object.o" "Source\\ObjectFinder.o" "Source\\PathController.o" "Source\\UDP_Client.o" "Source\\main.o" -lopencv_imgproc310 -lws2_32 -lopencv_imgcodecs310 -lopencv_video310 -lopencv_highgui310 -lopencv_core310 -lopencv_videoio310 
+Info: Nothing to build for DetectObject
+12:22:25 **** Incremental Build of configuration Debug for project DetectObject ****
+Info: Configuration "Debug" uses tool-chain "MinGW GCC" that is unsupported on this system, attempting to build anyway.
+Info: Internal Builder is used for build
+g++ -std=c++11 "-IC:\\opencv\\build\\include" "-IC:\\Users\\Alan\\Documents\\GitHub\\FYP\\DetectObject\\Header" -O0 -g3 -Wall -c -fmessage-length=0 -o "Source\\ObjectFinder.o" "..\\Source\\ObjectFinder.cpp" 
+In file included from ..\Source\ObjectFinder.cpp:1:0:
+C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/ObjectFinder.hpp:1:13: warning: extra tokens at end of #pragma directive
+ #pragma once;
+             ^
+In file included from C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/ObjectFinder.hpp:4:0,
+                 from ..\Source\ObjectFinder.cpp:1:
+C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/Object.hpp:1:13: warning: extra tokens at end of #pragma directive
+ #pragma once;
+             ^
+..\Source\ObjectFinder.cpp: In member function 'void ObjectFinder::trackObject(Object, cv::Mat, cv::Mat&, int)':
+..\Source\ObjectFinder.cpp:17:6: warning: unused variable 'x' [-Wunused-variable]
+  int x, y;
+      ^
+..\Source\ObjectFinder.cpp:17:9: warning: unused variable 'y' [-Wunused-variable]
+  int x, y;
+         ^
+..\Source\ObjectFinder.cpp: In member function 'void ObjectFinder::drawObject(std::vector<Object>, cv::Mat&)':
+..\Source\ObjectFinder.cpp:97:20: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+  for (int i = 0; i < objects.size(); i++) {
+                    ^
+g++ -std=c++11 "-IC:\\opencv\\build\\include" "-IC:\\Users\\Alan\\Documents\\GitHub\\FYP\\DetectObject\\Header" -O0 -g3 -Wall -c -fmessage-length=0 -o "Source\\UDP_Client.o" "..\\Source\\UDP_Client.cpp" 
+..\Source\UDP_Client.cpp: In member function 'int UDP_Client::run(int)':
+..\Source\UDP_Client.cpp:51:7: warning: unused variable 'szIP' [-Wunused-variable]
+  char szIP[100];
+       ^
+..\Source\UDP_Client.cpp: In member function 'int UDP_Client::create_new_socket(int)':
+..\Source\UDP_Client.cpp:138:7: warning: unused variable 'buf' [-Wunused-variable]
+  char buf[BUFLEN];
+       ^
+..\Source\UDP_Client.cpp: In member function 'int UDP_Client::create_new_socket(int, int, double)':
+..\Source\UDP_Client.cpp:209:7: warning: unused variable 'buf' [-Wunused-variable]
+  char buf[BUFLEN];
+       ^
+..\Source\UDP_Client.cpp: In member function 'int UDP_Client::run(int)':
+..\Source\UDP_Client.cpp:87:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+g++ "-LC:\\opencv\\sources\\eclipse_release\\lib" -o DetectObject.exe "Source\\Object.o" "Source\\ObjectFinder.o" "Source\\PathController.o" "Source\\UDP_Client.o" "Source\\main.o" -lopencv_imgproc310 -lws2_32 -lopencv_imgcodecs310 -lopencv_video310 -lopencv_highgui310 -lopencv_core310 -lopencv_videoio310 
+Info: Nothing to build for DetectObject
+12:23:51 **** Incremental Build of configuration Debug for project DetectObject ****
+Info: Configuration "Debug" uses tool-chain "MinGW GCC" that is unsupported on this system, attempting to build anyway.
+Info: Internal Builder is used for build
+g++ -std=c++11 "-IC:\\opencv\\build\\include" "-IC:\\Users\\Alan\\Documents\\GitHub\\FYP\\DetectObject\\Header" -O0 -g3 -Wall -c -fmessage-length=0 -o "Source\\main.o" "..\\Source\\main.cpp" 
+In file included from ..\Source\main.cpp:4:0:
+C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/Object.hpp:1:13: warning: extra tokens at end of #pragma directive
+ #pragma once;
+             ^
+In file included from ..\Source\main.cpp:5:0:
+C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/ObjectFinder.hpp:1:13: warning: extra tokens at end of #pragma directive
+ #pragma once;
+             ^
+In file included from ..\Source\main.cpp:13:0:
+C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/Window.hpp: In member function 'void Window::CheckBox(int)':
+C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/Window.hpp:12:12: warning: unused variable 'y' [-Wunused-variable]
+        int y=4;
+            ^
+..\Source\main.cpp: In function 'void createTrackbars()':
+..\Source\main.cpp:294:34: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "MIN", MIN);
+                                  ^
+..\Source\main.cpp:295:34: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "MAX", MAX);
+                                  ^
+..\Source\main.cpp:296:32: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "MIN", 0);
+                                ^
+..\Source\main.cpp:297:32: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "MAX", 2);
+                                ^
+..\Source\main.cpp:299:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "H_MIN", H_MIN);
+                                      ^
+..\Source\main.cpp:300:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "H_MAX", H_MAX);
+                                      ^
+..\Source\main.cpp:301:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "S_MIN", S_MIN);
+                                      ^
+..\Source\main.cpp:302:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "S_MAX", S_MAX);
+                                      ^
+..\Source\main.cpp:303:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "V_MIN", V_MIN);
+                                      ^
+..\Source\main.cpp:304:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "V_MAX", V_MAX);
+                                      ^
+..\Source\main.cpp:305:53: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "SavedObject", useSavedObject);
+                                                     ^
+g++ "-LC:\\opencv\\sources\\eclipse_release\\lib" -o DetectObject.exe "Source\\Object.o" "Source\\ObjectFinder.o" "Source\\PathController.o" "Source\\UDP_Client.o" "Source\\main.o" -lopencv_imgproc310 -lws2_32 -lopencv_imgcodecs310 -lopencv_video310 -lopencv_highgui310 -lopencv_core310 -lopencv_videoio310 
+Info: Nothing to build for DetectObject
+Info: Nothing to build for DetectObject
+Info: Nothing to build for DetectObject
+Info: Nothing to build for DetectObject
+Info: Nothing to build for DetectObject
+Info: Nothing to build for DetectObject

@@ -20,6 +20,7 @@ public:
 	PathController pc;
 	int XPos = 0;
 	int YPos = 0;
+	double CURRENT_OBJECT_AREA = 0;
 	int MIN_OBJECT_LENGTH = 75;
 	int MIN_OBJECT_WIDTH = 75;
 

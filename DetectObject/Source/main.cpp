@@ -20,7 +20,7 @@ void pause();
 Mat complementImage(Mat im, int row, int column);
 void draw_rectangle(Mat img_rgb, int sub_mat_no);
 void createTrackbars();
-void sendDataToServer(int x, int y, int mode);
+void sendDataToServer(int x, int y, double d, int mode);
 void setComp(int x);
 void Switch_With_Function_Pointer(int a, void (*pt2Func)(int));
 
@@ -47,15 +47,13 @@ string windowName1 = "Transformed Image (Black and White)";
 string windowName2 = "Transformed Image (Black and White Inverted)";
 string windowName3 = "Transformed Image (HSV)";
 
-void on_trackbar(int, void*)
-{
+void on_trackbar(int, void*) {
 	cout << "useSavedObject changed to " << useSavedObject << endl;
 	finder.updateMAX_OBJECT_AREA();
 
 }
 
-void morphOps(Mat &thresh)
-{
+void morphOps(Mat &thresh) {
 
 	//create structuring element that will be used to "dilate" and "erode" image.
 	//the element chosen here is a 3px by 3px rectangle
@@ -72,8 +70,7 @@ void morphOps(Mat &thresh)
 
 }
 
-bool determine_camera(char camera_name)
-{
+bool determine_camera(char camera_name) {
 	/*if (camera.open(camera_name))
 	 {
 	 cout << "Using Camera: " << camera_name << endl;
@@ -98,8 +95,7 @@ bool determine_camera(char camera_name)
 	return camera.open(1);
 }
 
-int run_all(char args[])
-{
+int run_all(char args[]) {
 	// initialise UDP Client
 	client.set_hostname("127.0.0.1");
 	client.set_port("4446");
@@ -119,8 +115,7 @@ int run_all(char args[])
 	createTrackbars(); //create slider bars for HSV filtering
 
 	int i = 0;
-	while (1)
-	{
+	while (1) {
 
 		camera.read(im_rgb);
 		cvtColor(im_rgb, im_gray, CV_RGB2GRAY); // convert image to grayscale
@@ -128,8 +123,7 @@ int run_all(char args[])
 		inRange(HSV, Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX),
 				threshold);
 
-		if (detectObject == 0)
-		{
+		if (detectObject == 0) {
 			destroyWindow(windowName3);
 
 			cv::threshold(im_gray, img_bw, MIN, MAX, THRESH_BINARY); // convert image to binary
@@ -148,24 +142,21 @@ int run_all(char args[])
 			morphOps(img_bw_comp);
 			imshow(windowName2, img_bw_comp);
 
-			sendDataToServer(pc.best_sub_matrix,0,detectObject);
+			sendDataToServer(pc.best_sub_matrix, 0, 0, detectObject);
 
 		}
 
-		else
-		{
+		else {
 			destroyWindow(windowName1);
 			destroyWindow(windowName2);
 
 			Object obj1("obj1");
 
-			if (useSavedObject == 1)
-			{
+			if (useSavedObject == 1) {
 				obj1.setType("SavedObject2");
 			}
 
-			else
-			{
+			else {
 				obj1.setHSVmin(Scalar(H_MIN, S_MIN, V_MIN));
 				obj1.setHSVmax(Scalar(H_MAX, S_MAX, V_MAX));
 			}
@@ -178,7 +169,7 @@ int run_all(char args[])
 			morphOps(threshold);
 			imshow(windowName3, threshold);
 
-			sendDataToServer(finder.XPos,finder.YPos,detectObject);
+			sendDataToServer(finder.XPos, finder.YPos, finder.CURRENT_OBJECT_AREA,detectObject);
 		}
 
 		namedWindow("Original", WINDOW_NORMAL);
@@ -190,7 +181,6 @@ int run_all(char args[])
 		int no3 = img_bw.dims; //img_bw.cols*img_bw.rows;
 		cout << "Size 1 = " << no1 << " Size 2 = " << no2 << " Size 3 = " << no3
 				<< endl;
-
 
 		//delay 30ms so that screen can refresh.
 		//image will not appear without this waitKey() command
@@ -204,8 +194,7 @@ int run_all(char args[])
 	return 1;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	char args[] = { '1', '0', '2' };
 	int result = run_all(args);
 	cout << "Result of program: " << result << endl;
@@ -213,14 +202,12 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void pause()
-{
+void pause() {
 	cout << "Press Enter to Continue..." << endl;
 	cin.get();
 }
 
-Mat complementImage(Mat im, int rows, int cols)
-{
+Mat complementImage(Mat im, int rows, int cols) {
 	Mat newmat = Mat::zeros(im.rows, im.cols, CV_8UC1);
 
 	int byte = 0;
@@ -228,8 +215,7 @@ Mat complementImage(Mat im, int rows, int cols)
 	int one = 255;
 
 	for (int i = 0; i < rows; i++)
-		for (int j = 0; j < cols; j++)
-		{
+		for (int j = 0; j < cols; j++) {
 			byte = im.at<unsigned char>(i, j);
 			if (byte != 0)
 				newmat.at<unsigned char>(i, j) = zero; // set value at i,j to zero
@@ -240,16 +226,14 @@ Mat complementImage(Mat im, int rows, int cols)
 }
 
 // function for drawing rectangle around most suitable quadrant
-void draw_rectangle(Mat img_rgb, int best_sub_matrix)
-{
+void draw_rectangle(Mat img_rgb, int best_sub_matrix) {
 	double cols = (double) img_rgb.cols;
 	double rows = (double) img_rgb.rows;
 
 	int bm_c = 1;
 	int bm_r = 1;
 
-	switch (best_sub_matrix)
-	{
+	switch (best_sub_matrix) {
 	case 1:
 		bm_c = 0;
 		bm_r = 0;
@@ -301,8 +285,7 @@ void draw_rectangle(Mat img_rgb, int best_sub_matrix)
 			Scalar(255, 255, 0), 3);
 }
 
-void createTrackbars()
-{
+void createTrackbars() {
 	//create window for trackbars
 
 	cv::namedWindow(trackbarWindowName, 0);
@@ -331,10 +314,10 @@ void createTrackbars()
 	createTrackbar("MAX", trackbarWindowName, &MAX, MAX, on_trackbar);
 	createTrackbar("DETECT OBJECT", trackbarWindowName, &detectObject, 1,
 			on_trackbar);
-	createTrackbar("DETECT OBJECT Length", trackbarWindowName, &finder.MIN_OBJECT_LENGTH, 200,
-				on_trackbar);
-	createTrackbar("DETECT OBJECT Width", trackbarWindowName, &finder.MIN_OBJECT_WIDTH, 200,
-					on_trackbar);
+	createTrackbar("DETECT OBJECT Length", trackbarWindowName,
+			&finder.MIN_OBJECT_LENGTH, 200, on_trackbar);
+	createTrackbar("DETECT OBJECT Width", trackbarWindowName,
+			&finder.MIN_OBJECT_WIDTH, 200, on_trackbar);
 
 	createTrackbar("H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar);
 	createTrackbar("H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar);
@@ -358,13 +341,11 @@ void createTrackbars()
 //   //cout << "Switch replaced by function pointer: 2-5=";  // display result
 //}
 
-void setComp(int x)
-{
+void setComp(int x) {
 	comp = x;
 }
 
-void sendDataToServer(int x, int y ,int mode)
-{
+void sendDataToServer(int x, int y, double d, int mode) {
 
 	// convert string to int
 	int best_sub_matrix = x;
@@ -378,6 +359,6 @@ void sendDataToServer(int x, int y ,int mode)
 	if (mode == 0)
 		client.create_new_socket(best_sub_matrix);
 	else
-		client.create_new_socket(x,y);
+		client.create_new_socket(x, y, d);
 }
 
