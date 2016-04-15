@@ -14,6 +14,13 @@ Applications 2 & 3 are eclipse projects so they can be downloaded and run direct
 
 The UDP server can be run by simply double-clicking the jar file.
 
-To run the Crazyflie Flight Controller
+To run the Crazyflie Flight Controller, the user must first 
+  1. install crazyflie python client requirements found at       https://github.com/bitcraze/crazyflie-clients-python
+  2. Then the user must navigate to the 'programs' directory through a command line
+  3. open up the main.py file and fix system.append() parts, as per comments in code
+  4. Go back to command line, and type 'python main.py <arg1> <arg2>'
+    4.1 arg1 is either 'linux or 'windows' depeding on your OS. Linux is default
+    4.2 arg2 is either 'off' or 'on', to start motors on start up. On is default
+
 
 
