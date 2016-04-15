@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import matplotlib.animation as animation
-from SubPlot import SubPlot
 
 
 class Plotter():
