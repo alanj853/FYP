@@ -1,3 +1,7 @@
+/*
+Class to track an object in an image
+*/
+
 #include <ObjectFinder.hpp>
 #include <Object.hpp>
 #include <opencv2/highgui.hpp>
@@ -22,7 +26,7 @@ void ObjectFinder::trackObject(Object objToTrack, Mat threshold,
 	threshold.copyTo(temp);
 
 	vector<vector<Point> > contours;
-	vector<Vec4i> hierarchy;
+	vector<Vec4i> hierarchy; // vector to store number of objects
 	//find contours of filtered image using openCV findContours function
 	findContours(temp, contours, hierarchy, CV_RETR_CCOMP,
 			CV_CHAIN_APPROX_SIMPLE);
@@ -37,13 +41,8 @@ void ObjectFinder::trackObject(Object objToTrack, Mat threshold,
 				Moments moment = moments((cv::Mat) contours[index]);
 				double area = moment.m00;
 
-				//if the area is less than 20 px by 20px then it is probably just noise
-				//if the area is the same as the 3/2 of the image size, probably just a bad filter
-				//we only want the object with the largest area so we safe a reference area each
-				//iteration and compare it to the area in the next iteration.
+
 				if (area > MIN_OBJECT_AREA) {
-					//x = moment.m10/area;
-					//y = moment.m01/area;
 
 					Object obj;
 					CURRENT_OBJECT_AREA = area;
@@ -79,7 +78,6 @@ void ObjectFinder::trackObject(Object objToTrack, Mat threshold,
 			//let user know you found an object
 			if (objectFound == true) {
 				//draw object location on screen
-				//cout << "Found Object" << endl;
 				drawObject(objects, cameraFeed);
 			}
 
@@ -103,7 +101,7 @@ void ObjectFinder::drawObject(vector<Object> objects, Mat &frame) {
 		XPos = x;
 		YPos = y;
 
-		pc.determineBestPath(x, y);
+		printBestPath(x, y);
 
 		string type = obj.getType();
 		Scalar colour = obj.getColour();
@@ -123,6 +121,44 @@ string ObjectFinder::intToString(int number) {
 	std::stringstream ss;
 	ss << number;
 	return ss.str();
+}
+
+void ObjectFinder::printBestPath(int x, int y){
+	int xTarget = 319;
+	int yTarget = 239;
+
+	int xDiff = x - xTarget;
+	int yDiff = y - yTarget;
+
+	if (xDiff < 1 && yDiff < 1)
+		cout << "Move left and Up" << endl;
+
+	else if (xDiff < 1 && yDiff > 1)
+		cout << "Move left and Down" << endl;
+
+	else if (xDiff > 1 && yDiff < 1)
+		cout << "Move right and Up" << endl;
+
+	else if (xDiff > 1 && yDiff > 1)
+		cout << "Move right and Down" << endl;
+
+	else if (xDiff < 1 && yDiff == 0)
+		cout << "Move left" << endl;
+
+	else if (xDiff > 1 && yDiff == 0)
+		cout << "Move right" << endl;
+
+	else if (xDiff == 0 && yDiff > 1)
+		cout << "Move Down" << endl;
+
+	else if (xDiff == 0 && yDiff < 1)
+		cout << "Move Up" << endl;
+
+	else if(xDiff == 0 && yDiff == 0)
+		cout << "Dont Move" << endl;
+
+	else
+		cout << "Nothing" << endl;
 }
 
 void ObjectFinder::updateMAX_OBJECT_AREA() {

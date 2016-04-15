@@ -1,0 +1,41 @@
+package server;
+
+import java.io.*;
+import java.net.DatagramSocket;
+
+public class Server {
+
+	
+    public Server(int port)
+    {
+        try {
+        	DatagramSocket socket = new DatagramSocket(port);
+            System.out.println("Message From Server: Waiting for connection...");
+
+            Thread t = new Thread(new ServerThread(socket, port));
+            t.start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // main method. User can pass in a single argument to the program. Must be a number between 2000 and 60000
+    public static void main(String[] args) throws IOException {
+    	int port = 54000;
+    	try{
+    		port  = Integer.parseInt(args[0]);
+    		if (port < 2000 || port > 60000){
+    			System.out.println("Port must be between 2000 - 60000");
+    		}
+    	}
+    	catch(NullPointerException e){
+    		System.err.println(e.getMessage());
+    		port = 54000;
+    		System.out.println("No value entered.");
+    	}
+    	Server myServer = new Server(port);
+
+        
+    }
+}

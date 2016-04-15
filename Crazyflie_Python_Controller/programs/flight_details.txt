@@ -1037,3 +1037,63 @@
 05-04-2016 15:47:52: Total Flight Time: 37 seconds
 05-04-2016 15:54:10: Total Flight Time: 13 seconds
 05-04-2016 15:54:47: Total Flight Time: 16 seconds
+10-04-2016 17:08:01: Total Flight Time: 62 seconds
+10-04-2016 17:14:31: Total Flight Time: 13 seconds
+10-04-2016 17:15:21: Total Flight Time: 11 seconds
+10-04-2016 17:20:36: Total Flight Time: 17 seconds
+10-04-2016 17:34:20: Total Flight Time: 31 seconds
+10-04-2016 17:35:25: Total Flight Time: 16 seconds
+10-04-2016 17:36:27: Total Flight Time: 16 seconds
+10-04-2016 17:39:39: Total Flight Time: 105 seconds
+10-04-2016 17:40:48: Total Flight Time: 54 seconds MOTORS OFF
+10-04-2016 17:42:21: Total Flight Time: 77 seconds
+10-04-2016 17:44:20: Total Flight Time: 74 seconds
+10-04-2016 17:48:19: Total Flight Time: 138 seconds
+12-04-2016 19:57:14: Total Flight Time: 14 seconds MOTORS OFF
+12-04-2016 19:59:07: Total Flight Time: 61 seconds MOTORS OFF
+12-04-2016 20:00:40: Total Flight Time: 6 seconds MOTORS OFF
+12-04-2016 20:07:10: Total Flight Time: 29 seconds MOTORS OFF
+12-04-2016 20:52:42: Total Flight Time: 1460490762 seconds MOTORS OFF
+12-04-2016 20:55:01: Total Flight Time: 1460490901 seconds MOTORS OFF
+12-04-2016 20:55:32: Total Flight Time: 1460490932 seconds MOTORS OFF
+12-04-2016 20:57:35: Total Flight Time: 1460491055 seconds MOTORS OFF
+12-04-2016 20:58:29: Total Flight Time: 1460491109 seconds MOTORS OFF
+12-04-2016 20:58:51: Total Flight Time: 1460491131 seconds MOTORS OFF
+12-04-2016 20:59:38: Total Flight Time: 1460491178 seconds MOTORS OFF
+12-04-2016 21:03:02: Total Flight Time: 1460491382 seconds MOTORS OFF
+12-04-2016 21:04:27: Total Flight Time: 1460491467 seconds MOTORS OFF
+12-04-2016 21:04:55: Total Flight Time: 1460491495 seconds MOTORS OFF
+12-04-2016 21:18:47: Total Flight Time: 1460492327 seconds MOTORS OFF
+12-04-2016 21:28:09: Total Flight Time: 1460492889 seconds MOTORS OFF
+12-04-2016 21:28:55: Total Flight Time: 1460492935 seconds MOTORS OFF
+12-04-2016 21:29:18: Total Flight Time: 1460492958 seconds MOTORS OFF
+12-04-2016 21:30:21: Total Flight Time: 1460493021 seconds MOTORS OFF
+12-04-2016 21:40:19: Total Flight Time: 1460493619 seconds MOTORS OFF
+12-04-2016 21:41:29: Total Flight Time: 1460493689 seconds MOTORS OFF
+12-04-2016 21:42:30: Total Flight Time: 1460493750 seconds MOTORS OFF
+12-04-2016 21:44:59: Total Flight Time: 1460493899 seconds MOTORS OFF
+12-04-2016 22:26:49: Total Flight Time: 1460496409 seconds MOTORS OFF
+12-04-2016 22:30:14: Total Flight Time: 1460496614 seconds MOTORS OFF
+12-04-2016 22:32:06: Total Flight Time: 1460496726 seconds MOTORS OFF
+12-04-2016 22:34:44: Total Flight Time: 60 seconds
+12-04-2016 22:38:19: Total Flight Time: 20 seconds MOTORS OFF
+12-04-2016 22:41:38: Total Flight Time: 15 seconds MOTORS OFF
+12-04-2016 22:46:46: Total Flight Time: 145 seconds MOTORS OFF
+12-04-2016 23:23:40: Total Flight Time: 40 seconds
+12-04-2016 23:42:10: Total Flight Time: 285 seconds
+14-04-2016 09:14:33: Total Flight Time: 5 seconds MOTORS OFF
+14-04-2016 09:16:14: Total Flight Time: 45 seconds MOTORS OFF
+14-04-2016 09:17:41: Total Flight Time: 14 seconds MOTORS OFF
+14-04-2016 09:20:09: Total Flight Time: 6 seconds MOTORS OFF
+14-04-2016 09:24:51: Total Flight Time: 35 seconds MOTORS OFF
+14-04-2016 09:36:02: Total Flight Time: 7 seconds MOTORS OFF
+14-04-2016 09:37:39: Total Flight Time: 63 seconds
+14-04-2016 09:40:04: Total Flight Time: 48 seconds
+14-04-2016 09:40:28: Total Flight Time: 15 seconds
+14-04-2016 09:41:43: Total Flight Time: 2 seconds MOTORS OFF
+14-04-2016 09:43:59: Total Flight Time: 98 seconds
+14-04-2016 09:49:36: Total Flight Time: 18 seconds MOTORS OFF
+14-04-2016 09:53:31: Total Flight Time: 71 seconds
+14-04-2016 10:17:45: Total Flight Time: 9 seconds MOTORS OFF
+14-04-2016 10:18:27: Total Flight Time: 14 seconds
+14-04-2016 10:20:32: Total Flight Time: 101 seconds

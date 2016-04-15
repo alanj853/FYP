@@ -1,3 +1,12 @@
+/*
+This is the main image processing program. It can be run with or without
+an argument. The argument that can be passed in is the camera device number
+the user wished to use (usually within 0-10)
+
+In order to run this program, opencv will need to be installed, the libraries 
+will have to be added to the program and the include directories as well.
+*/
+
 #include <opencv2/opencv.hpp>
 #include <PathController.hpp>
 #include <UDP_Client.hpp>
@@ -20,9 +29,7 @@ void pause();
 Mat complementImage(Mat im, int row, int column);
 void draw_rectangle(Mat img_rgb, int sub_mat_no);
 void createTrackbars();
-void sendDataToServer(int x, int y, double d, int mode);
-void setComp(int x);
-void Switch_With_Function_Pointer(int a, void (*pt2Func)(int));
+void sendToServer(int x, int y, double d, int mode);
 
 int comp = 1;
 int useSavedObject = 0;
@@ -70,7 +77,11 @@ void morphOps(Mat &thresh) {
 
 }
 
-bool determine_camera(char camera_name) {
+// function to try to open a camera. If the camera name 
+// specified in the argument cannot be opened, the function
+// tries to open the first 5 default cameras connected to the 
+// machine until one is sucessfully connected.
+bool determine_camera(char *camera_name) {
 	/*if (camera.open(camera_name))
 	 {
 	 cout << "Using Camera: " << camera_name << endl;
@@ -92,10 +103,11 @@ bool determine_camera(char camera_name) {
 	 cout << "No Camera Available" << endl;
 	 return false;
 	 }*/
-	return camera.open(1);
+	return camera.open(1); // have hard coded this statement for demo purposes
 }
 
-int run_all(char args[]) {
+// method to run  entire image processing program
+int run_all(char *cameraName) {
 	// initialise UDP Client
 	client.set_hostname("127.0.0.1");
 	client.set_port("4446");
@@ -109,7 +121,7 @@ int run_all(char args[]) {
 	PathController pc;
 	string path = "";
 
-	if (!determine_camera(args[1])) // if camera cannot be found
+	if (!determine_camera(cameraName)) // if camera cannot be found exit program
 		return 0;
 
 	createTrackbars(); //create slider bars for HSV filtering
@@ -117,7 +129,7 @@ int run_all(char args[]) {
 	int i = 0;
 	while (1) {
 
-		camera.read(im_rgb);
+		camera.read(im_rgb); // read image frame
 		cvtColor(im_rgb, im_gray, CV_RGB2GRAY); // convert image to grayscale
 		cvtColor(im_rgb, HSV, COLOR_BGR2HSV);
 		inRange(HSV, Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX),
@@ -137,12 +149,16 @@ int run_all(char args[]) {
 			namedWindow(windowName1, WINDOW_NORMAL);
 			morphOps(img_bw);
 			imshow(windowName1, img_bw);
+			for(int i = 0; i< 5;i++){
+							int byte = threshold.at<unsigned char>(1, i);
+							cout << "Byte = " << byte << endl;
+						}
 
 			namedWindow(windowName2, WINDOW_NORMAL);
 			morphOps(img_bw_comp);
 			imshow(windowName2, img_bw_comp);
 
-			sendDataToServer(pc.best_sub_matrix, 0, 0, detectObject);
+			sendToServer(pc.best_sub_matrix, 0, 0, detectObject);
 
 		}
 
@@ -163,17 +179,18 @@ int run_all(char args[]) {
 
 			inRange(HSV, obj1.getHSVmin(), obj1.getHSVmax(), threshold);
 			morphOps(threshold);
+
 			finder.trackObject(obj1, threshold, im_rgb, useSavedObject);
 
 			namedWindow(windowName3, WINDOW_NORMAL);
 			morphOps(threshold);
 			imshow(windowName3, threshold);
 
-			sendDataToServer(finder.XPos, finder.YPos, finder.CURRENT_OBJECT_AREA,detectObject);
+			sendToServer(finder.XPos, finder.YPos, finder.CURRENT_OBJECT_AREA,detectObject);
 		}
 
 		namedWindow("Original", WINDOW_NORMAL);
-		draw_rectangle(im_rgb, pc.best_sub_matrix);
+		//draw_rectangle(im_rgb, pc.best_sub_matrix);
 		imshow("Original", im_rgb);
 
 		int no1 = threshold.dims; //threshold.cols*threshold.rows;
@@ -184,6 +201,7 @@ int run_all(char args[]) {
 
 		//delay 30ms so that screen can refresh.
 		//image will not appear without this waitKey() command
+		// press 'd' to exit the program
 		int x = waitKey(30);
 		if ((char) x == 'd')
 			break;
@@ -195,8 +213,16 @@ int run_all(char args[]) {
 }
 
 int main(int argc, char *argv[]) {
-	char args[] = { '1', '0', '2' };
-	int result = run_all(args);
+	int result;
+	if (argc < 2){
+		char x = '1';
+		char *y = &x;
+		result = run_all(y);
+	}
+	else{
+		result = run_all(argv[1]);
+	}
+	
 	cout << "Result of program: " << result << endl;
 	//pause();
 	return 0;
@@ -312,11 +338,11 @@ void createTrackbars() {
 
 	createTrackbar("MIN", trackbarWindowName, &MIN, MAX, on_trackbar);
 	createTrackbar("MAX", trackbarWindowName, &MAX, MAX, on_trackbar);
-	createTrackbar("DETECT OBJECT", trackbarWindowName, &detectObject, 1,
+	createTrackbar("MODE", trackbarWindowName, &detectObject, 1,
 			on_trackbar);
-	createTrackbar("DETECT OBJECT Length", trackbarWindowName,
+	createTrackbar("OBJ_Length", trackbarWindowName,
 			&finder.MIN_OBJECT_LENGTH, 200, on_trackbar);
-	createTrackbar("DETECT OBJECT Width", trackbarWindowName,
+	createTrackbar("OBJ_Width", trackbarWindowName,
 			&finder.MIN_OBJECT_WIDTH, 200, on_trackbar);
 
 	createTrackbar("H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar);
@@ -328,24 +354,10 @@ void createTrackbars() {
 
 	createTrackbar("SavedObject", trackbarWindowName, &useSavedObject, 1,
 			on_trackbar);
-	//Window w;
-	//w.createCheckBox();
-	//createButton("Button 1", Switch_With_Function_Pointer(2,&setComp), NULL, CV_CHECKBOX, 0);
 
 }
 
-//void Switch_With_Function_Pointer(int a, void (*pt2Func)(int, void))
-//{
-//   pt2Func(a,void);    // call using function pointer
-//
-//   //cout << "Switch replaced by function pointer: 2-5=";  // display result
-//}
-
-void setComp(int x) {
-	comp = x;
-}
-
-void sendDataToServer(int x, int y, double d, int mode) {
+void sendToServer(int x, int y, double d, int mode) {
 
 	// convert string to int
 	int best_sub_matrix = x;
@@ -353,12 +365,11 @@ void sendDataToServer(int x, int y, double d, int mode) {
 	char str[20];
 	buf += itoa(best_sub_matrix, str, 10);
 
-	//string command = "java -jar UDP_client.jar " + client.get_hostname + " " + client.get_port + " " + buf;
-	//system(command.c_str());
-
+	// create a new UDP socket each time to connect to UDP server
+	// I realise this seems a bit inefficient but it still works fine.
 	if (mode == 0)
-		client.create_new_socket(best_sub_matrix);
+		client.sendDataToServer(best_sub_matrix);
 	else
-		client.create_new_socket(x, y, d);
+		client.sendDataToServer(x, y, d);
 }
 

@@ -1,7 +1,12 @@
 
 """
-Simple program that allows user to control motors from the keyboard of their machine
-IS WORKING
+This is the main program for the flight controller program. User can run this program
+(provided they have the crazyflie requirements installed, See bitcraze github page for 
+more info) by typing from this files directory into the terminal
+	python main.py <arg1> <arg2>
+where arg1 can be either "windows" or "linux" for whatever OS program is running on
+where arg2 can be "off" to turn motors off on start up. If any other command is entered, motors will
+spin upon connection
 
 """
 
@@ -11,10 +16,13 @@ from threading import Thread
 import time, math
 from datetime import datetime, date
 
-#FIXME: Has to be launched from within the example folder
+## these systems appends are specific to my personal machine
+## User will need to configure their own. Just make sure they point to the craxyflie "lib"
+## folder and also site packages
 sys.path.append("../lib")
 sys.path.append("C:\Users\Alan\Dropbox\crazyflie-clients-python\lib")
 sys.path.append("C:\Python27\Lib\site-packages")
+
 import cflib
 from cflib.crazyflie import Crazyflie
 
@@ -62,13 +70,7 @@ class FlightController:
         #self._logger.logNewVar("gyro.y", "float")
         self._logger.logNewVar("pm.vbat", "float")
 
-        # self.pidctrlr_alt.setPGain(50)
-        # self.pidctrlr_alt.setIGain(0.008)# 032
-        # self.pidctrlr_alt.setDGain(320)
-        # self.pidctrlr_alt.setErrorThreshold(0.1)
-        # self.pidctrlr_alt.setMaxInc(1000)
-
-        self.pidctrlr_alt.setPGain(100)
+        self.pidctrlr_alt.setPGain(100) ## set gains and other paramters of controllers
         self.pidctrlr_alt.setIGain(0.00)# 032
         self.pidctrlr_alt.setDGain(320)
         self.pidctrlr_alt.setErrorThreshold(0.1)
@@ -83,7 +85,7 @@ class FlightController:
         self.pidctrlr_y.setDGain(1)
 
         self.pidctrlr_t.setPGain(.5) ## .25 works (sort of) with i = 0, d = 0
-        self.pidctrlr_t.setIGain(.0001) ## try 0006,0007, ... etc tomorrow
+        self.pidctrlr_t.setIGain(.005) ## try 0006,0007, ... etc tomorrow
         self.pidctrlr_t.setDGain(1.4)
         self.pidctrlr_t.setErrorThreshold(10)
 
@@ -107,16 +109,57 @@ class FlightController:
         self.current_pitch = 0
         self.altHold = False
 
-        self._auto_pilot_mode = 1
+        self._auto_pilot_mode = 1 ## change this value between 0,1 & 2 to enter various controllers 
 
+        
+
+        ## methods used for testing and writing data to files.
+        ## has been hard coded for specific number of files operation
+    def writeAllDataToTextFiles(self, vals1,vals2,vals3, vals4,vals5):
+        fileName1 = open("Excel/error1.txt", "wb") ## create new file in folder called Excel (user will have to create folder first)
+        fileName2 = open("Excel/Increments.txt", "wb")
+        fileName3 = open("Excel/yPositionReadings.txt", "wb")
+        fileName4 = open("Excel/batteryDrain1.txt", "wb")
+        fileName5 = open("Excel/rollData.txt", "wb")
+
+        for data in vals1:
+            string = str(data) + ","
+            fileName1.write(string)
+        fileName1.close()
+
+        for data in vals2:
+            string = str(data) + ","
+            fileName2.write(string)
+        fileName2.close()
+
+        for data in vals3:
+            string = str(data) + ","
+            fileName3.write(string)
+        fileName3.close()
+
+        for data in vals4:
+            string = str(data) + ","
+            fileName4.write(string)
+        fileName4.close()
+
+        for data in vals5:
+            string = str(data) + ","
+            fileName5.write(string)
+        fileName5.close()
+    
 
 
     ## this method is called when a successful connection to the CF has been made
     def _connected(self, link_uri):
 
         Thread(target=self._motor_controller).start() # start the thread for controlling the motors
-        Thread(target=self._logger._begin_logging).start()
-        Thread(target=self._udpClient.run).start()
+
+        ## Depending on autopilot mode, different threads are started. This is because program will break its
+        ## connection with the crazyflie if it runs too many threads. Read my thesis for more info on this
+        if self._auto_pilot_mode != 1:
+            Thread(target=self._logger._begin_logging).start()
+        else:
+            Thread(target=self._udpClient.run).start()
 
         
         print "Connected to ", link_uri
@@ -143,9 +186,10 @@ class FlightController:
 
 
     
-
+    ## function to turn off all processes running so program can end 
     def _turnOffAllProcesses(self):
         self._udpClient.disconnectClient()
+        self.turnOffTest = True
 
     # auto pilot function
     def _auto_pilot(self, mode):
@@ -197,21 +241,21 @@ class FlightController:
         elif mode == 1:
             self.plotter1.ax3.set_title('Y Position')
             self.plotter1.ax5.set_title('Roll Error')
-            x = (self._udpClient.getXerr())
+            x = (self._udpClient.getXcoordinate())
             x = float(float(x)/1000);
-            y = self._udpClient.getYerr()
+            y = self._udpClient.getYcoordinate()
             self.yPositionReadings.append(y)
 
             thrustFactor = self.pidctrlr_t._determineIncrement(239, y)
-            rollFactor = self.pidctrlr_r._determineIncrement(319, x)
+            rollFactor = 0#self.pidctrlr_r._determineIncrement(319, x)
             gravityFactor = 1#0.2297*2
 
-            batteryValue = self._logger.retrieveVar("pm.vbat")
-            self.batteryReadings.append(batteryValue)
-            if batteryValue < 4.2:
-                batteryFactor = (batteryValue - 3.7)*100
-            else:
-                batteryFactor = 0
+            # batteryValue = self._logger.retrieveVar("pm.vbat")
+            # self.batteryReadings.append(batteryValue)
+            # if batteryValue < 4.2:
+            #     batteryFactor = (batteryValue - 3.7)*100  ## attempt at adding battery factor to help as battery drained
+            # else:
+            #     batteryFactor = 0
             
             self.current_thrust = self.current_thrust + thrustFactor
             self.current_roll = self.current_roll - rollFactor
@@ -301,8 +345,11 @@ class FlightController:
             if char == "h":
                 print "Auto Pilot ON. Mode = ", self._auto_pilot_mode
                 altHold = True
-                self.targetAlt = self._logger.retrieveVar("baro.asl")
                 self.pidctrlr_t.reset()
+
+                if self._auto_pilot_mode != 1:
+                	self.targetAlt = self._logger.retrieveVar("baro.asl") ## will throw any error if auto pilot mode == 1 becuase logger will not have been initialised
+                
                 self.pidctrlr_alt.reset()
                 print "Target Alt: ", self.targetAlt
                 
@@ -421,7 +468,7 @@ class FlightController:
 
 
         self._turnOffAllProcesses()
-        self._cf.close_link()
+        self._cf.close_link() ## close connection to crazyflie
     
     
     
@@ -550,7 +597,7 @@ if __name__ == '__main__':
         print "Total Flight Time: ", int(stop_time - le.start_time), " seconds"
         ts = time.time()
         dt = datetime.fromtimestamp(ts).strftime('%d-%m-%Y %H:%M:%S')
-        # Open a file to write flight details to
+        # Open a file to write flight time details to
         fo = open("flight_details.txt", "a")
         if le._motors_on == False:
             msg = str(dt + ": " + "Total Flight Time: " + str(int(stop_time - le.start_time)) + " seconds MOTORS OFF\n")
@@ -558,27 +605,26 @@ if __name__ == '__main__':
             msg = str(dt + ": " + "Total Flight Time: " + str(int(stop_time - le.start_time)) + " seconds\n")
         fo.write(msg);
 
-        # Close opened file
+        # Close  file
         fo.close()
-        le.turn_off_UDP_client = True;
+        sampRate = 0
 
+        ## plot different data (using Plotter) based on auto pilot mode
         if le._auto_pilot_mode == 1:
             le.plotter1.updateY(le.pidctrlr_t.getErrorAccum(),le.pidctrlr_t.getIncAccum(),le.yPositionReadings, le.batteryReadings, le.pidctrlr_r.getErrorAccum())
+            le.writeAll(le.pidctrlr_t.getErrorAccum(),le.pidctrlr_t.getIncAccum(),le.yPositionReadings, le.batteryReadings, le.pidctrlr_r.getErrorAccum())
             print "Time under AutoPilot = ", le.pidctrlr_t.getControlTime(), " seconds"
+            sampRate = len(le.pidctrlr_t.getErrorAccum())/le.pidctrlr_t.getControlTime() ## get sampling rate
+            print "sampRate = ", sampRate, " samples/seconds"
             le.plotter1.plot()
         elif le._auto_pilot_mode == 2:
             le.plotter1.updateY(le.pidctrlr_alt.getErrorAccum(),le.pidctrlr_alt.getIncAccum(),le.baroReadings, le.batteryReadings,0)
-            print "Time under AutoPilot = ", le.pidctrlr_t.getControlTime(), " seconds"
+            le.writeAll(le.pidctrlr_alt.getErrorAccum(),le.pidctrlr_alt.getIncAccum(),le.baroReadings, le.batteryReadings,0)
+            print "Time under AutoPilot = ", le.pidctrlr_alt.getControlTime(), " seconds"
             le.plotter1.plot()
         else:
             print "Don't plot"
 
-        fileName = "ErrorData\error" + str(time.time()) + ".txt"
-        errorFile = open(fileName, "wb")
-        for data in le.pidctrlr_t.getErrorAccum():
-            string = str(data) + ","
-            errorFile.write(string)
-        errorFile.close()
         
     else:
         print "No Crazyflies found, cannot run example"

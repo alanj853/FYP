@@ -1,3 +1,7 @@
+/*
+Class to send data to UDP server
+
+*/
 #include <UDP_Client.hpp>
 
 #include <sys/types.h>
@@ -44,47 +48,7 @@ int UDP_Client::resolvehelper(const char* hostname, int family,
 	return result;
 }
 
-int UDP_Client::run(int best_matrix_pos) {
-	int result = 0;
-	sock = socket(AF_INET, SOCK_DGRAM, 0);
 
-	char szIP[100];
-
-	sockaddr_in addrListen = { }; // zero-int, sin_port is 0, which picks a random port for bind.
-	addrListen.sin_family = AF_INET;
-	cout << addrListen.sin_family << endl;
-	cout << sizeof(addrListen) << endl;
-	result = bind(sock, (sockaddr*) &addrListen, sizeof(addrListen));
-	if (result == -1) {
-		int lasterror = WSAGetLastError();
-		std::cout << "error: " << lasterror;
-		exit(1);
-	}
-
-	sockaddr_storage addrDest = { };
-	result = resolvehelper(hostname, AF_INET, port, &addrDest);
-	if (result != 0) {
-		int lasterror = 0;
-		std::cout << "error: " << lasterror;
-		exit(1);
-	}
-
-	string best_matrix = "<x=" + int_to_string(best_matrix_pos) + ";>";
-	string header = "<CPP:Client>";
-
-	string message = header + best_matrix;
-	const char* msg = message.c_str();
-
-	size_t msg_length = strlen(msg);
-
-	result = sendto(sock, msg, msg_length, 0, (sockaddr*) &addrDest,
-			sizeof(addrDest));
-
-	//cout << result << " Message sent: " << message << endl;
-
-	//return 0;
-
-}
 
 int UDP_Client::print_out(int x) {
 	cout << "This is bestMatrix: " << x << endl;
@@ -127,7 +91,7 @@ void UDP_Client::close_socket() {
 	WSACleanup();
 }
 
-int UDP_Client::create_new_socket(int best_matrix_pos) {
+int UDP_Client::sendDataToServer(int best_matrix_pos) {
 
 	int BUFLEN = 512;
 	unsigned short int PORT = 5000;
@@ -178,18 +142,6 @@ int UDP_Client::create_new_socket(int best_matrix_pos) {
 			printf("sendto() failed with error code : %d", WSAGetLastError());
 			exit(EXIT_FAILURE);
 		}
-
-		//receive a reply and print it
-		//clear the buffer by filling null, it might have previously received data
-		/* memset(buf,'\0', BUFLEN);
-		 //try to receive some data, this is a blocking call
-		 if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == SOCKET_ERROR)
-		 {
-		 printf("recvfrom() failed with error code : %d" , WSAGetLastError());
-		 exit(EXIT_FAILURE);
-		 }
-
-		 puts(buf);*/
 	}
 
 	closesocket(s);
@@ -198,7 +150,7 @@ int UDP_Client::create_new_socket(int best_matrix_pos) {
 	return 0;
 }
 
-int UDP_Client::create_new_socket(int x, int y, double area) {
+int UDP_Client::sendDataToServer(int x, int y, double area) {
 
 	int BUFLEN = 512;
 	unsigned short int PORT = 5000;
@@ -252,18 +204,6 @@ int UDP_Client::create_new_socket(int x, int y, double area) {
 			printf("sendto() failed with error code : %d", WSAGetLastError());
 			exit(EXIT_FAILURE);
 		}
-
-		//receive a reply and print it
-		//clear the buffer by filling null, it might have previously received data
-		/* memset(buf,'\0', BUFLEN);
-		 //try to receive some data, this is a blocking call
-		 if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == SOCKET_ERROR)
-		 {
-		 printf("recvfrom() failed with error code : %d" , WSAGetLastError());
-		 exit(EXIT_FAILURE);
-		 }
-
-		 puts(buf);*/
 	}
 
 	closesocket(s);

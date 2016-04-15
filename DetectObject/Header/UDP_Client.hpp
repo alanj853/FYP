@@ -20,7 +20,6 @@ public:
 	UDP_Client();
 	~UDP_Client();
 	int print_out(int x);
-	int run(int x);
 	int resolvehelper(const char* hostname, int family, const char* service,
 			sockaddr_storage* pAddr);
 	string int_to_string(int i);
@@ -29,8 +28,8 @@ public:
 	void set_port(const char* p);
 	string get_hostname();
 	string get_port();
-	int create_new_socket(int x);
-	int create_new_socket(int x, int y, double area);
+	int sendDataToServer(int x);
+	int sendDataToServer(int x, int y, double area);
 	void close_socket();
 
 private:

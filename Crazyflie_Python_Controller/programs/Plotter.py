@@ -1,3 +1,8 @@
+"""
+Class to create a plotter object.
+implements the matplotlib plotting interface
+is currently hard coded to plot 5 graphs
+"""
 from datetime import datetime, date
 import matplotlib.pyplot as plt
 import numpy as np

@@ -22,9 +22,11 @@ string PathController::printrowscols(Mat curr_frame)
 	int no_cols = frame.cols;
 	cout << "Rows: " << no_rows << " Cols: " << no_cols << endl;
 	calculation_done = true;
-	return "Hello";
+	return "";
 }
 
+// function to determine the number of cols needed to
+// traverse frame f in 3 steps (3x3 = 9 submatrices)
 int PathController::determine_cols(Mat f)
 {
 	double cols = (double) f.cols;
@@ -39,6 +41,8 @@ int PathController::determine_cols(Mat f)
 	return (int) ans;
 }
 
+// function to determine the number of rows needed to
+// traverse frame f in 3 steps (3x3 = 9 submatrices)
 int PathController::determine_rows(Mat f)
 {
 	double rows = (double) f.rows;
@@ -53,51 +57,9 @@ int PathController::determine_rows(Mat f)
 	return (int) ans;
 }
 
-int* PathController::determineBestPath(int x, int y)
-{
-	int xTarget = 319;
-	int yTarget = 239;
 
-	int xDiff = x - xTarget;
-	int yDiff = y - yTarget;
 
-	if (xDiff < 1 && yDiff < 1)
-		cout << "Move left and Up" << endl;
-
-	else if (xDiff < 1 && yDiff > 1)
-		cout << "Move left and Down" << endl;
-
-	else if (xDiff > 1 && yDiff < 1)
-		cout << "Move right and Up" << endl;
-
-	else if (xDiff > 1 && yDiff > 1)
-		cout << "Move right and Down" << endl;
-
-	else if (xDiff < 1 && yDiff == 0)
-		cout << "Move left" << endl;
-
-	else if (xDiff > 1 && yDiff == 0)
-		cout << "Move right" << endl;
-
-	else if (xDiff == 0 && yDiff > 1)
-		cout << "Move Down" << endl;
-
-	else if (xDiff == 0 && yDiff < 1)
-		cout << "Move Up" << endl;
-
-	else if(xDiff == 0 && yDiff == 0)
-		cout << "Dont Move" << endl;
-
-	else
-		cout << "Nothing" << endl;
-
-	int vars[2];
-	vars[0] = xDiff;
-	vars[1] = yDiff;
-	return vars;
-}
-
-// method to determine best path based on BW image
+// method to determine best path based on BW thresholded image
 string PathController::determineBestPath(Mat curr_frame)
 {
 	frame_being_analysed = curr_frame;
@@ -170,11 +132,13 @@ string PathController::determineBestPath(Mat curr_frame)
 	return path;
 }
 
+// set a pixel value at a certain position in an image
 void PathController::setMatrixValue(Mat image, int row, int column, int value)
 {
 	image.at<unsigned char>(row, column) = value;
 }
 
+// return a pixel value at a certain position in an image
 int PathController::getMatrixValue(Mat image, int row, int column)
 {
 	int byte = image.at<unsigned char>(row, column);
@@ -221,6 +185,7 @@ void PathController::set_calulation_status(bool val)
 	calculation_done = val;
 }
 
+// create submatrices based on specified parameters
 void PathController::create_sub_matrices(int rows, int cols)
 {
 	for (int i = 0; i < 9; i++)
@@ -228,6 +193,11 @@ void PathController::create_sub_matrices(int rows, int cols)
 	best_sub_matrix = 5;
 }
 
+/*
+this function is ued to determine which sub matrix has the most free space
+it does this by counting the number of binary 1's (value is either 0 or 255, so 255 == "binary 1")
+in each sub matrix
+*/
 void PathController::determine_most_free_space(Mat mats[])
 {
 	int most_free_space = 0;

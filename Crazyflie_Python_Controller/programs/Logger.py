@@ -1,3 +1,9 @@
+"""
+Class for logging data from Crazyflie. It uses an old logging framework
+implemented by bitcraze, however it parse the data logged to retieve
+individual log parameters
+"""
+
 import logging
 from cflib.crazyflie.log import LogConfig
 from threading import Thread
@@ -34,6 +40,7 @@ class Logger:
             print "Could not add logconfig since some variables are not in TOC"
             print "Log not started"
 
+    ## in order to log data, the user must specify what data to log. See implementation in main.py
     def logNewVar(self, varName, numberType):
         self._logger.add_variable(varName, numberType) ## add a logable  parameter to logConfig object. Number type is usually "float". example: self._logger.add_variable('baro.asl', "float")
         #self._logger.add_variable("baro.asl", "float")

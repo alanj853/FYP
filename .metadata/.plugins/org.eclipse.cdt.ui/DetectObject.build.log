@@ -1,1 +1,55 @@
-Info: Nothing to build for DetectObject
+11:54:03 **** Incremental Build of configuration Debug for project DetectObject ****
+Info: Configuration "Debug" uses tool-chain "MinGW GCC" that is unsupported on this system, attempting to build anyway.
+Info: Internal Builder is used for build
+g++ -std=c++11 "-IC:\\opencv\\build\\include" "-IC:\\Users\\Alan\\Documents\\GitHub\\FYP\\DetectObject\\Header" -O0 -g3 -Wall -c -fmessage-length=0 -o "Source\\main.o" "..\\Source\\main.cpp" 
+In file included from ..\Source\main.cpp:13:0:
+C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/Object.hpp:1:13: warning: extra tokens at end of #pragma directive
+ #pragma once;
+             ^
+In file included from ..\Source\main.cpp:14:0:
+C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/ObjectFinder.hpp:1:13: warning: extra tokens at end of #pragma directive
+ #pragma once;
+             ^
+In file included from ..\Source\main.cpp:22:0:
+C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/Window.hpp: In member function 'void Window::CheckBox(int)':
+C:\Users\Alan\Documents\GitHub\FYP\DetectObject\Header/Window.hpp:12:12: warning: unused variable 'y' [-Wunused-variable]
+        int y=4;
+            ^
+..\Source\main.cpp: In function 'void createTrackbars()':
+..\Source\main.cpp:320:34: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "MIN", MIN);
+                                  ^
+..\Source\main.cpp:321:34: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "MAX", MAX);
+                                  ^
+..\Source\main.cpp:322:32: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "MIN", 0);
+                                ^
+..\Source\main.cpp:323:32: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "MAX", 2);
+                                ^
+..\Source\main.cpp:325:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "H_MIN", H_MIN);
+                                      ^
+..\Source\main.cpp:326:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "H_MAX", H_MAX);
+                                      ^
+..\Source\main.cpp:327:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "S_MIN", S_MIN);
+                                      ^
+..\Source\main.cpp:328:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "S_MAX", S_MAX);
+                                      ^
+..\Source\main.cpp:329:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "V_MIN", V_MIN);
+                                      ^
+..\Source\main.cpp:330:38: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "V_MAX", V_MAX);
+                                      ^
+..\Source\main.cpp:331:53: warning: too many arguments for format [-Wformat-extra-args]
+  sprintf(TrackbarName, "SavedObject", useSavedObject);
+                                                     ^
+g++ "-LC:\\opencv\\sources\\eclipse_release\\lib" -o DetectObject.exe "Source\\Object.o" "Source\\ObjectFinder.o" "Source\\PathController.o" "Source\\UDP_Client.o" "Source\\main.o" -lopencv_imgproc310 -lws2_32 -lopencv_imgcodecs310 -lopencv_video310 -lopencv_highgui310 -lopencv_core310 -lopencv_videoio310 
+
+11:54:10 Build Finished (took 7s.80ms)
+

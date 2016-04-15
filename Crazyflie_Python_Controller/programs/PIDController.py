@@ -1,5 +1,8 @@
+"""
+Class for creating and implementing PID controllers
+"""
+
 from __future__ import division
-#from PID import PID
 from threading import Thread
 from Plotter import Plotter
 
@@ -63,40 +66,54 @@ class PIDController:
 	def getLastError(self):
 		return self.lastError
 
-	def getXAxis(self):
-		length = len(self._errorAccum) - 1
-		t = self.getControlTime()
-		increment = t / length
-		arr = [len(self._errorAccum)]
-		s = 0
-		print "t = ", t, " inc = ", increment, " length = ", length
-		while s < (t - increment):
-		 	arr.append(s)
-		 	
-		print "len of arr", len(arr)
-		print "len of error = ", len(self._errorAccum) , " sum = ", s
-		self.xAxis = arr
-		return self.xAxis
 
+
+	## function to deterine proportional component
 	def _determineProportional(self, error):
 		P = self.Kp*error
 		#print "P = ", self.Kp, " * ", error, " = ", P
 		return P;
 
+		
+	## function to deterine integral component
 	def _determineIntegral(self, _errorAccum):
 		#print self.name, ": ", _errorAccum
-		return self.Ki*sum(_errorAccum);
-		
+		#return self.Ki*sum(_errorAccum); ## integrate over error from time '0'
 
+		## this method only integrates over area where error last crossed X axis
+		## so doesn't include all error "history" in calculation
+		currErrorAccum = [] ## list to store error
+		if self.lastError > 0:
+			i = len(self._errorAccum) - 1
+			while i >= 0:
+				x = self._errorAccum[i]
+				if x > 0:
+					currErrorAccum.append(x)
+				else:
+					break;
+				i = i -1
+		elif self.lastError < 0:
+			i = len(self._errorAccum) - 1
+			while i >= 0:
+				x = self._errorAccum[i]
+				if x < 0:
+					currErrorAccum.append(x)
+				else:
+					break;
+				i = i -1
+		else:
+			currErrorAccum.append(0)
+
+		return self.Ki*sum(currErrorAccum);
+
+
+		
+	## function to deterine derivative component
 	def _determineDerivative(self, _errorAccum):
 		l = len(_errorAccum)
 		currentError = _errorAccum[l-1]
 		previousError = _errorAccum[l-2]
-		if currentError > 1:
-			D = 1*self.Kd*(currentError - previousError)
-			#D = 2*self.Kd*(currentError - previousError)
-		else:
-			D = 1*self.Kd*(currentError - previousError)
+		D = 1*self.Kd*(currentError - previousError)
 		#print "D = ", self.Kd, " * (", currentError , " - ", previousError, ") = ", D
 		return D; ## will return current slope
 
@@ -118,9 +135,6 @@ class PIDController:
 
 	def getIncAccum(self):
 		return self._incAccum;
-
-	def getxAxis(self):
-		return self.xAxis;
 
 	def getMaxError(self):
 		return self.maxError
@@ -153,77 +167,6 @@ class PIDController:
 	def setErrorThreshold(self, x):
 		self.errorThreshold = x
 
-	def _makeGUI(self):
-		self.top = Tkinter.Tk()
-		self.top.wm_title(self.name)
-		self.top.geometry("300x300")
-		B1 = Tkinter.Button(self.top, text ="+ Kp", command = self.incrKp)
-		B2 = Tkinter.Button(self.top, text ="- Kp", command = self.decrKp)
-		B3 = Tkinter.Button(self.top, text ="+ Ki", command = self.incrKi)
-		B4 = Tkinter.Button(self.top, text ="- Ki", command = self.decrKi)
-		B5 = Tkinter.Button(self.top, text ="+ kd", command = self.incrKd)
-		B6 = Tkinter.Button(self.top, text ="- kd", command = self.decrKd)
-
-
-		self.var1 = Tkinter.StringVar()
-		self.var2 = Tkinter.StringVar()
-		self.var3 = Tkinter.StringVar()
-
-		label1 = Tkinter.Label( self.top, textvariable=self.var1)
-		label2 = Tkinter.Label( self.top, textvariable=self.var2)
-		label3 = Tkinter.Label( self.top, textvariable=self.var3)
-
-		x1 = "Kp = ", self.Kp
-		self.var1.set(x1)
-
-		x2 = "Ki = ", self.Ki
-		self.var2.set(x2)
-
-		x3 = "Kd = ", self.Kd
-		self.var3.set(x3)
-
-		label1.pack()
-		label2.pack()
-		label3.pack()
-
-		B1.pack()
-		B2.pack()
-		B3.pack()
-		B4.pack()
-		B5.pack()
-		B6.pack()
-
-		self.top.mainloop()
-
-	def incrKp(self):
-		self.setPGain(self.Kp + .1)
-		x = "Kp = ", self.Kp
-		self.var1.set(x)
-
-	def decrKp(self):
-		self.setPGain(self.Kp - .1)
-		x = "Kp = ", self.Kp
-		self.var1.set(x)
-
-	def incrKi(self):
-		self.setIGain(self.Ki + .1)
-		x = "Ki = ", self.Ki
-		self.var2.set(x)
-
-	def decrKi(self):
-		self.setIGain(self.Ki - .1)
-		x = "Ki = ", self.Ki
-		self.var2.set(x)
-
-	def incrKd(self):
-		self.setDGain(self.Kd + .1)
-		x = "Kd = ", self.Kd
-		self.var3.set(x)
-
-	def decrKd(self):
-		self.setDGain(self.Kd - .1)
-		x = "Kd = ", self.Kd
-		self.var3.set(x)
 
 
 

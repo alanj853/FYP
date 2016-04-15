@@ -42,9 +42,9 @@ public class ServerThread extends Thread {
 
 				} else if (incoming_message.contains("CF:Client-Request_DetectWhiteSpace"))
 					sendReply(bestMatrix);
-				 else if (incoming_message.contains("CF:Client-Request_DetectObject_Xerr"))
+				 else if (incoming_message.contains("CF:Client-Request_DetectObject_Xcoordinate"))
 						sendReply(xErr);
-				 else if (incoming_message.contains("CF:Client-Request_DetectObject_Yerr"))
+				 else if (incoming_message.contains("CF:Client-Request_DetectObject_Ycoordinate"))
 						sendReply(yErr);
 				 else if (incoming_message.contains("CF:Client-Request_DetectObject_ObjectArea"))
 						sendReply(objectArea);

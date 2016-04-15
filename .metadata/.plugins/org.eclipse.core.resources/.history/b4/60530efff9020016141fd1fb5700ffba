@@ -1,0 +1,42 @@
+package server;
+
+import java.io.*;
+import java.net.DatagramSocket;
+
+public class Server {
+
+	
+    public Server(int port)
+    {
+        try {
+        	if (port < 2000 || port >60000)
+        		port  = 54000; // the default port
+            DatagramSocket socket = new DatagramSocket(port);
+            System.out.println("Message From Server: Waiting for connection...");
+
+            Thread t = new Thread(new ServerThread(socket, port));
+            t.start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+    	int port;
+    	try{
+    		port  = Integer.parseInt(args[0]);
+    		if (port < 2000 || port > 60000){
+    			System.out.println("Port must be between 2000 - 60000");
+    			port = 54000;
+    		}
+    		
+    		Server myServer = new Server(port);
+    	}
+    	catch(NullPointerException e){
+    		System.err.println(e.getMessage());
+    	}
+
+        
+    }
+}

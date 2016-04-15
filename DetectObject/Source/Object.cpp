@@ -1,3 +1,7 @@
+/*
+Class for creating 'Tracked Object' objects ;)
+*/
+
 #include <Object.hpp>
 #include <opencv2/opencv.hpp>
 
@@ -54,11 +58,8 @@ string Object::getType() {
 
 void Object::setType(string type) {
 	Object::type = type;
-//	if (type == "SavedObject1") {
-//							setHSVmin(Scalar(53, 126, 75));
-//							setHSVmax(Scalar(149, 256, 256));
-//							setColour(Scalar(255, 0, 255)); // blue
-//						}
+	
+	// some predefined hardcoded objects. Have HSV thresholds set already					
 	if (type == "SavedObject1") {
 								setHSVmin(Scalar(103, 28, 21));
 								setHSVmax(Scalar(152, 256, 147));
