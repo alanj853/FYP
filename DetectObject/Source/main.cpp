@@ -9,7 +9,7 @@ will have to be added to the program and the include directories as well.
 
 #include <opencv2/opencv.hpp>
 #include <PathController.hpp>
-#include <UDP_Client.hpp>
+// #include <UDP_Client.hpp>
 #include <Object.hpp>
 #include <ObjectFinder.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -38,7 +38,7 @@ const string trackbarWindowName = "Trackbars";
 int MIN = 0;
 int MAX = 255;
 VideoCapture camera;
-UDP_Client client;
+// UDP_Client client;
 ObjectFinder finder;
 
 //initial min and max HSV filter values.
@@ -109,8 +109,8 @@ bool determine_camera(char *camera_name) {
 // method to run  entire image processing program
 int run_all(char *cameraName) {
 	// initialise UDP Client
-	client.set_hostname("127.0.0.1");
-	client.set_port("4446");
+	// client.set_hostname("127.0.0.1");
+	// client.set_port("4446");
 
 	Mat im_gray;   // no need to load the Mat with anything when declaring it.
 	Mat im_rgb;
@@ -130,8 +130,8 @@ int run_all(char *cameraName) {
 	while (1) {
 
 		camera.read(im_rgb); // read image frame
-		cvtColor(im_rgb, im_gray, CV_RGB2GRAY); // convert image to grayscale
-		cvtColor(im_rgb, HSV, COLOR_BGR2HSV);
+		cvtColor(im_rgb, im_gray, cv::COLOR_RGB2GRAY); // convert image to grayscale
+		cvtColor(im_rgb, HSV, cv::COLOR_BGR2HSV);
 		inRange(HSV, Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX),
 				threshold);
 
@@ -363,13 +363,13 @@ void sendToServer(int x, int y, double d, int mode) {
 	int best_sub_matrix = x;
 	std::string buf = "";
 	char str[20];
-	buf += itoa(best_sub_matrix, str, 10);
+	buf = std::to_string(best_sub_matrix);
 
-	// create a new UDP socket each time to connect to UDP server
-	// I realise this seems a bit inefficient but it still works fine.
-	if (mode == 0)
-		client.sendDataToServer(best_sub_matrix);
-	else
-		client.sendDataToServer(x, y, d);
+	// // create a new UDP socket each time to connect to UDP server
+	// // I realise this seems a bit inefficient but it still works fine.
+	// if (mode == 0)
+	// 	client.sendDataToServer(best_sub_matrix);
+	// else
+	// 	client.sendDataToServer(x, y, d);
 }
 

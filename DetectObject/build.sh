@@ -1,0 +1,1 @@
+g++ -o app Source/*.cpp -IHeader -I/opt/opencv/include/opencv4 -L/opt/opencv/lib/ -lopencv_imgproc -lopencv_imgcodecs -lopencv_video -lopencv_highgui -lopencv_core -lopencv_videoio

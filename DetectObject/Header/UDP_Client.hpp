@@ -9,7 +9,8 @@
 #include <stdlib.h>*/
 #include <iostream>
 //#include <winsock.h>
-#include <winsock2.h>
+// #include <winsock2.h>
+#include <netinet/in.h>
 
 using namespace std;
 

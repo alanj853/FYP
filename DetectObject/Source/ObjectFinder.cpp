@@ -5,6 +5,10 @@ Class to track an object in an image
 #include <ObjectFinder.hpp>
 #include <Object.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs/legacy/constants_c.h>
+#include <opencv2/imgproc/types_c.h>
+#include <opencv2/imgproc/imgproc_c.h>
+#include <opencv2/calib3d/calib3d_c.h>
 #include <PathController.hpp>
 
 using namespace cv;

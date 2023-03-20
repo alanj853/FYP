@@ -17,6 +17,7 @@ public:
 	string intToString(int number);
 	bool getObjectFound();
 	void updateMAX_OBJECT_AREA();
+	void printBestPath(int x, int y);
 	PathController pc;
 	int XPos = 0;
 	int YPos = 0;
